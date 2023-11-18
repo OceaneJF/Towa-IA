@@ -17,7 +17,9 @@ public class JoueurTowaTest {
     @Test
     public void testActionsPossibles() {
         // testActionsPossibles_niveau1();
-        testActionsPossibles_niveau2();
+        // testActionsPossibles_niveau2();
+        // testActionsPossibles_niveau3();
+        testActionsPossibles_niveau4();
     }
         
     /**
@@ -88,11 +90,75 @@ public class JoueurTowaTest {
         // pose sur case de même couleur et hauteur > 1 : possible
         assertTrue(actionsPossibles.contient("PlF,27,21"));
     }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 3.
+     */
+    public void testActionsPossibles_niveau3() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 3;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // pose sur case vide : possible
+        assertTrue(actionsPossibles.contient("PaB,28,20"));
+        // pose sur case avec un seul pion de même couleur : possible
+        assertTrue(actionsPossibles.contient("PbA,28,20"));
+        // pose sur case avec 5 pions de même couleur : impossible
+        assertFalse(actionsPossibles.contient("PcK,28,20"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // pose sur case avec 3 pions de même couleur : possible
+        assertTrue(actionsPossibles.contient("PmF,27,21"));
+        // pose sur case avec 4 pions de même couleur : impossible
+        assertFalse(actionsPossibles.contient("PlF,27,21"));
+    }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 4.
+     */
+    public void testActionsPossibles_niveau4() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 4;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // activation sans effet, ne détruit pas les tours adverses de même hauteur : possible
+        assertTrue(actionsPossibles.contient("AnG,27,20"));
+        // activation d'une tour de la mauvaise couleur : impossible
+        assertFalse(actionsPossibles.contient("AaG,27,20"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // activation d'une case vide : impossible
+        assertFalse(actionsPossibles.contient("AaA,27,20"));
+        // activation d'une tour sur le bord : possible
+        assertTrue(actionsPossibles.contient("AaG,27,20"));
+        // activation d'une tour contre une tour adverse de même hauteur sans effet : possible
+        assertTrue(actionsPossibles.contient("ApG,27,20"));
+        // destruction de tours adverse : possible
+        assertTrue(actionsPossibles.contient("AmF,24,20"));
+        assertTrue(actionsPossibles.contient("AlF,22,20"));
+    }
+    
 
     @Test
     public void testNbPions() {
-        // à décommenter le moment venu...
-        /*
         // plateau1 : 0 noir, 0 blanc
         Case[][] plateau1 = Utils.plateauDepuisTexte(PLATEAU_NIVEAU1);
         assertEquals(0, JoueurTowa.nbPions(plateau1).nbPionsNoirs);
@@ -100,13 +166,35 @@ public class JoueurTowaTest {
         // plateau2 : 27 noirs, 20 blancs
         Case[][] plateau2 = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
         assertEquals(27, JoueurTowa.nbPions(plateau2).nbPionsNoirs);
-        assertEquals(20, JoueurTowa.nbPions(plateau2).nbPionsBlancs);        
-        */
+        assertEquals(20, JoueurTowa.nbPions(plateau2).nbPionsBlancs);
     }
 
     @Test
     public void testPosePossible() {
-        // à compléter...
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 2;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // pose sur case vide : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(0, 1),couleur, niveau));
+        // pose sur case de même couleur : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(1,0),couleur, niveau));
+        // pose sur case de couleur opposée : impossible
+        assertFalse(joueur.posePossible(plateau, new Coordonnees(0, 6),couleur, niveau));
+        // pose sur case de même couleur et hauteur > 1 : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(2, 10),couleur, niveau));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // pose sur case vide : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(0, 1),couleur, niveau));
+        // pose sur case de même couleur : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(0, 6),couleur, niveau));
+        // pose sur case de couleur opposée : impossible
+        assertFalse(joueur.posePossible(plateau, new Coordonnees(1,0),couleur, niveau));
+        // pose sur case de même couleur et hauteur > 1 : possible
+        assertTrue(joueur.posePossible(plateau, new Coordonnees(11, 5),couleur, niveau));
     }
     
     /**

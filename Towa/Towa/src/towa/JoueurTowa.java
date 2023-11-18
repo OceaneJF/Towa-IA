@@ -37,6 +37,11 @@ public class JoueurTowa implements IJoueurTowa {
                     // on ajoute l'action dans les actions possibles
                     ajoutActionPose(coord, actions, nbPions, couleurJoueur);
                 }
+                // si l'activation d'une tour de cette couleur est possible sur cette case
+                if (activationPossible(plateau, coord, couleurJoueur, niveau)) {
+                    // on ajoute l'action dans les actions possibles
+                    ajoutActionActivation(coord, actions, nbPions, couleurJoueur, plateau);
+                }
             }
         }
         System.out.println("actionsPossibles : fin");
@@ -66,8 +71,38 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
         }
-        if(niveau >= 2){
-            if((plateau[coord.ligne][coord.colonne].couleur != couleur) && (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE)){
+        if (niveau >= 2) {
+            if ((plateau[coord.ligne][coord.colonne].couleur != couleur) && (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE)) {
+                estPossible = false;
+            }
+        }
+        if (niveau >= 3) {
+            if (plateau[coord.ligne][coord.colonne].hauteur >= 4) {
+                estPossible = false;
+            }
+        }
+        return estPossible;
+    }
+
+    /**
+     * Indique s'il est possible d'activer une tour sur une case pour ce plateau,
+     * ce joueur, dans ce niveau.
+     *
+     * @param plateau le plateau
+     * @param coord coordonnées de la case à considérer
+     * @param couleur couleur du joueur
+     * @return vrai ssi l'activation d'une tour sur cette case est autorisée dans ce
+     * niveau
+     */
+    boolean activationPossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
+        boolean estPossible = true;
+        if (niveau < 3) {
+            estPossible = false;
+        } else {
+            // Il faut qu'il y ait une tour de la couleur du joueur.
+            if(!plateau[coord.ligne][coord.colonne].tourPresente()){
+                estPossible = false;
+            } else if(plateau[coord.ligne][coord.colonne].couleur != couleur){
                 estPossible = false;
             }
         }
@@ -85,10 +120,10 @@ public class JoueurTowa implements IJoueurTowa {
         int nbPionsBlancs = 0;
         for (int i = 0; i < plateau.length; i++) {
             for (int j = 0; j < plateau[i].length; j++) {
-                if(plateau[i][j].couleur == Case.CAR_NOIR){
+                if (plateau[i][j].couleur == Case.CAR_NOIR) {
                     nbPionsNoirs += plateau[i][j].hauteur;
                 }
-                if(plateau[i][j].couleur == Case.CAR_BLANC){
+                if (plateau[i][j].couleur == Case.CAR_BLANC) {
                     nbPionsBlancs += plateau[i][j].hauteur;
                 }
             }
@@ -109,15 +144,71 @@ public class JoueurTowa implements IJoueurTowa {
             NbPions nbPions, char couleur) {
         int pionsNoirAAjouter = 0;
         int pionsBlancAAjouter = 0;
-        if(couleur == Case.CAR_NOIR){
+        if (couleur == Case.CAR_NOIR) {
             pionsNoirAAjouter = 1;
         }
-        if(couleur == Case.CAR_BLANC){
+        if (couleur == Case.CAR_BLANC) {
             pionsBlancAAjouter = 1;
         }
         String action = "P" + coord.carLigne() + coord.carColonne() + ","
                 + (nbPions.nbPionsNoirs + pionsNoirAAjouter) + ","
-                + (nbPions.nbPionsBlancs+ pionsBlancAAjouter);
+                + (nbPions.nbPionsBlancs + pionsBlancAAjouter);
+        actions.ajouterAction(action);
+    }
+
+    /**
+     * Ajout d'une action d'activation dans l'ensemble des actions possibles.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à activer
+     * @param actions l'ensemble des actions possibles (en construction)
+     * @param nbPions le nombre de pions par couleur sur le plateau avant de
+     * jouer l'action
+     * @param couleur la couleur de la tour à activer (le joueur actif)
+     * @param plateau le plateau de jeu
+     */
+    void ajoutActionActivation(Coordonnees coord, ActionsPossibles actions,
+            NbPions nbPions, char couleur, Case[][] plateau) {
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        // Détermination des cases adjacentes à la tour activée.
+        int ligneMin = coord.ligne - 1;
+        if (ligneMin < 0) {
+            ligneMin = 0;
+        }
+        int ligneMax = coord.ligne + 1;
+        if (ligneMax > Coordonnees.NB_LIGNES-1) {
+            ligneMax = Coordonnees.NB_LIGNES-1;
+        }
+        int colonneMin = coord.colonne - 1;
+        if (colonneMin < 0) {
+            colonneMin = 0;
+        }
+        int colonneMax = coord.colonne + 1;
+        if (colonneMax > Coordonnees.NB_COLONNES-1) {
+            colonneMax = Coordonnees.NB_COLONNES-1;
+        }
+        // Calcul du nombre de pions enlevés.
+        int nbPionsAEnlever = 0;
+        for (int i = ligneMin; i <= ligneMax; i++) {
+            for (int j = colonneMin; j <= colonneMax; j++) {
+                if (plateau[i][j].couleur != couleur && plateau[i][j].couleur != Case.CAR_VIDE) {
+                    if (hauteurTour > plateau[i][j].hauteur) {
+                        nbPionsAEnlever += plateau[i][j].hauteur;
+                    }
+                }
+            }
+        }
+        // Construction de l'action-meusure d'activation.
+        int pionsNoirAEnlever = 0;
+        int pionsBlancAEnlever = 0;
+        if (couleur == Case.CAR_BLANC) {
+            pionsNoirAEnlever = nbPionsAEnlever;
+        }
+        if (couleur == Case.CAR_NOIR) {
+            pionsBlancAEnlever = nbPionsAEnlever;
+        }
+        String action = "A" + coord.carLigne() + coord.carColonne() + ","
+                + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
+                + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
         actions.ajouterAction(action);
     }
 }
