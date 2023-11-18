@@ -66,7 +66,11 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
         }
-
+        if(niveau >= 2){
+            if((plateau[coord.ligne][coord.colonne].couleur != couleur) && (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE)){
+                estPossible = false;
+            }
+        }
         return estPossible;
     }
 
@@ -77,7 +81,19 @@ public class JoueurTowa implements IJoueurTowa {
      * @return le nombre de pions sur le plateau, de chaque couleur
      */
     static NbPions nbPions(Case[][] plateau) {
-        return new NbPions(0, 0); // TODO il y en aura besoin à un moment !
+        int nbPionsNoirs = 0;
+        int nbPionsBlancs = 0;
+        for (int i = 0; i < plateau.length; i++) {
+            for (int j = 0; j < plateau[i].length; j++) {
+                if(plateau[i][j].couleur == Case.CAR_NOIR){
+                    nbPionsNoirs += plateau[i][j].hauteur;
+                }
+                if(plateau[i][j].couleur == Case.CAR_BLANC){
+                    nbPionsBlancs += plateau[i][j].hauteur;
+                }
+            }
+        }
+        return new NbPions(nbPionsNoirs, nbPionsBlancs);
     }
 
     /**
@@ -91,9 +107,17 @@ public class JoueurTowa implements IJoueurTowa {
      */
     void ajoutActionPose(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur) {
+        int pionsNoirAAjouter = 0;
+        int pionsBlancAAjouter = 0;
+        if(couleur == Case.CAR_NOIR){
+            pionsNoirAAjouter = 1;
+        }
+        if(couleur == Case.CAR_BLANC){
+            pionsBlancAAjouter = 1;
+        }
         String action = "P" + coord.carLigne() + coord.carColonne() + ","
-                + (nbPions.nbPionsNoirs + 1) + ","
-                + (nbPions.nbPionsBlancs);
+                + (nbPions.nbPionsNoirs + pionsNoirAAjouter) + ","
+                + (nbPions.nbPionsBlancs+ pionsBlancAAjouter);
         actions.ajouterAction(action);
     }
 }
