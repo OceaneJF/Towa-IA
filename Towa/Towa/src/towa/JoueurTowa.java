@@ -33,7 +33,7 @@ public class JoueurTowa implements IJoueurTowa {
             for (int col = 0; col < Coordonnees.NB_COLONNES; col++) {
                 Coordonnees coord = new Coordonnees(lig, col);
                 // si la pose d'un pion de cette couleur est possible sur cette case
-                if (posePossible(plateau, coord, couleurJoueur)) {
+                if (posePossible(plateau, coord, couleurJoueur, niveau)) {
                     // on ajoute l'action dans les actions possibles
                     ajoutActionPose(coord, actions, nbPions, couleurJoueur);
                 }
@@ -53,8 +53,21 @@ public class JoueurTowa implements IJoueurTowa {
      * @return vrai ssi la pose d'un pion sur cette case est autorisée dans ce
      * niveau
      */
-    boolean posePossible(Case[][] plateau, Coordonnees coord, char couleur) {
-        return false; // TODO à vous de jouer !
+    boolean posePossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
+        boolean estPossible = true;
+        if (niveau >= 1) {
+            if (coord.ligne < 0) {
+                estPossible = false;
+            } else if (coord.ligne >= Coordonnees.NB_LIGNES) {
+                estPossible = false;
+            } else if (coord.colonne < 0) {
+                estPossible = false;
+            } else if (coord.colonne >= Coordonnees.NB_COLONNES) {
+                estPossible = false;
+            }
+        }
+
+        return estPossible;
     }
 
     /**
@@ -72,13 +85,13 @@ public class JoueurTowa implements IJoueurTowa {
      *
      * @param coord coordonnées de la case où poser un pion
      * @param actions l'ensemble des actions possibles (en construction)
-     * @param nbPions le nombre de pions par couleur sur le plateau avant de 
+     * @param nbPions le nombre de pions par couleur sur le plateau avant de
      * jouer l'action
      * @param couleur la couleur du pion à ajouter
      */
     void ajoutActionPose(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur) {
-        String action = "P" + coord.carLigne() + coord.carColonne() + "," 
+        String action = "P" + coord.carLigne() + coord.carColonne() + ","
                 + (nbPions.nbPionsNoirs + 1) + ","
                 + (nbPions.nbPionsBlancs);
         actions.ajouterAction(action);

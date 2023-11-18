@@ -16,10 +16,10 @@ public class JoueurTowaTest {
      */
     @Test
     public void testActionsPossibles() {
-        // testActionsPossibles_niveau1();
+        testActionsPossibles_niveau1();
         // testActionsPossibles_niveau2();
     }
-
+        
     /**
      * Test de la fonction actionsPossibles, au niveau 1.
      */
