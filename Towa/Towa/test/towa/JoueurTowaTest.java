@@ -19,7 +19,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau1();
         // testActionsPossibles_niveau2();
         // testActionsPossibles_niveau3();
-        testActionsPossibles_niveau4();
+        // testActionsPossibles_niveau4();
+        testActionsPossibles_niveau5();
     }
         
     /**
@@ -156,6 +157,39 @@ public class JoueurTowaTest {
         assertTrue(actionsPossibles.contient("AlF,22,20"));
     }
     
+    /**
+     * Test de la fonction actionsPossibles, au niveau 5.
+     */
+    public void testActionsPossibles_niveau5() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 5;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // pose à côté de 2 blancs : possible
+        assertTrue(actionsPossibles.contient("PaH,29,20"));
+        // pose à côté d'un blanc et d'un noir : possible
+        assertTrue(actionsPossibles.contient("PkF,29,20"));
+        // pose à côté d'un noir : possible
+        assertTrue(actionsPossibles.contient("PiH,28,20"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // pose à côté de rien : possible
+        assertTrue(actionsPossibles.contient("PfF,27,21"));
+        // pose à côté d'un noir : possible
+        assertTrue(actionsPossibles.contient("PhL,27,22"));
+        // pose  à côté d'un noir mais sur un blanc : possible
+        assertTrue(actionsPossibles.contient("PlG,27,21"));
+    }
+    
 
     @Test
     public void testNbPions() {
@@ -204,12 +238,14 @@ public class JoueurTowaTest {
     public void testAjoutActionPose() {
         JoueurTowa joueur = new JoueurTowa();
         ActionsPossibles actions = new ActionsPossibles();
+        int niveau = 3;
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
         NbPions nbPions = new NbPions(0, 0);
         // pour l'instant pas d'action possible
         assertEquals(0, actions.nbActions);
         // on crée le tableau d'actions et on en ajoute une
         joueur.ajoutActionPose(Coordonnees.depuisCars('f', 'D'), actions, 
-                nbPions, Case.CAR_NOIR);
+                nbPions, Case.CAR_NOIR, niveau, plateau);
         // l'action est devenue possible
         assertTrue(actions.contient("PfD,1,0"));
         // une action possible mais qui n'a pas encore été ajoutée
@@ -218,7 +254,7 @@ public class JoueurTowaTest {
         assertEquals(1, actions.nbActions);
         // ajout d'une deuxième action possible
         joueur.ajoutActionPose(Coordonnees.depuisCars('b', 'H'), actions, 
-                nbPions, Case.CAR_NOIR);
+                nbPions, Case.CAR_NOIR, niveau, plateau);
         // l'action a bien été ajoutée
         assertTrue(actions.contient("PbH,1,0"));
         // désormais, deux actions possibles

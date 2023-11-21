@@ -35,7 +35,7 @@ public class JoueurTowa implements IJoueurTowa {
                 // si la pose d'un pion de cette couleur est possible sur cette case
                 if (posePossible(plateau, coord, couleurJoueur, niveau)) {
                     // on ajoute l'action dans les actions possibles
-                    ajoutActionPose(coord, actions, nbPions, couleurJoueur);
+                    ajoutActionPose(coord, actions, nbPions, couleurJoueur, niveau, plateau);
                 }
                 // si l'activation d'une tour de cette couleur est possible sur cette case
                 if (activationPossible(plateau, coord, couleurJoueur, niveau)) {
@@ -141,14 +141,23 @@ public class JoueurTowa implements IJoueurTowa {
      * @param couleur la couleur du pion à ajouter
      */
     void ajoutActionPose(Coordonnees coord, ActionsPossibles actions,
-            NbPions nbPions, char couleur) {
+            NbPions nbPions, char couleur, int niveau, Case[][] plateau) {
+        int pionsAAjouter = 0;
+        if(niveau>=0){
+            pionsAAjouter = 1;
+        }
+        if (niveau >= 5){
+            if(casesAdjacentes(coord, couleur, plateau,1)>=1){
+                pionsAAjouter = 2;
+            }
+        }
         int pionsNoirAAjouter = 0;
         int pionsBlancAAjouter = 0;
         if (couleur == Case.CAR_NOIR) {
-            pionsNoirAAjouter = 1;
+            pionsNoirAAjouter = pionsAAjouter;
         }
         if (couleur == Case.CAR_BLANC) {
-            pionsBlancAAjouter = 1;
+            pionsBlancAAjouter = pionsAAjouter;
         }
         String action = "P" + coord.carLigne() + coord.carColonne() + ","
                 + (nbPions.nbPionsNoirs + pionsNoirAAjouter) + ","
@@ -168,8 +177,32 @@ public class JoueurTowa implements IJoueurTowa {
      */
     void ajoutActionActivation(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur, Case[][] plateau) {
-        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int nbAdversairesAdjacent = casesAdjacentes(coord, couleur, plateau,0);
+        // Construction de l'action-meusure d'activation.
+        int pionsNoirAEnlever = 0;
+        int pionsBlancAEnlever = 0;
+        if (couleur == Case.CAR_BLANC) {
+            pionsNoirAEnlever = nbAdversairesAdjacent;
+        }
+        if (couleur == Case.CAR_NOIR) {
+            pionsBlancAEnlever = nbAdversairesAdjacent;
+        }
+        String action = "A" + coord.carLigne() + coord.carColonne() + ","
+                + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
+                + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
+        actions.ajouterAction(action);
+    }
+    
+    /**
+     * Cette fonction permet de déterminer combien de pions adverses sont adjacents au pion du joueur.
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif)
+     * @param plateau le plateau de jeu
+     * @return le nombre d'adversaires adjacents.
+     */
+    static int casesAdjacentes(Coordonnees coord, char couleur, Case[][] plateau, int appel){
         // Détermination des cases adjacentes à la tour activée.
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
         int ligneMin = coord.ligne - 1;
         if (ligneMin < 0) {
             ligneMin = 0;
@@ -187,28 +220,22 @@ public class JoueurTowa implements IJoueurTowa {
             colonneMax = Coordonnees.NB_COLONNES-1;
         }
         // Calcul du nombre de pions enlevés.
-        int nbPionsAEnlever = 0;
+        int nbAdversairesAdjacent = 0;
         for (int i = ligneMin; i <= ligneMax; i++) {
             for (int j = colonneMin; j <= colonneMax; j++) {
                 if (plateau[i][j].couleur != couleur && plateau[i][j].couleur != Case.CAR_VIDE) {
-                    if (hauteurTour > plateau[i][j].hauteur) {
-                        nbPionsAEnlever += plateau[i][j].hauteur;
+                    if(appel == 0){
+                        if (hauteurTour > plateau[i][j].hauteur) {
+                        nbAdversairesAdjacent += plateau[i][j].hauteur;
+                    }
+                    }
+                    if(appel == 1 && plateau[coord.ligne][coord.colonne].couleur == Case.CAR_VIDE){
+                        nbAdversairesAdjacent ++;
                     }
                 }
             }
         }
-        // Construction de l'action-meusure d'activation.
-        int pionsNoirAEnlever = 0;
-        int pionsBlancAEnlever = 0;
-        if (couleur == Case.CAR_BLANC) {
-            pionsNoirAEnlever = nbPionsAEnlever;
-        }
-        if (couleur == Case.CAR_NOIR) {
-            pionsBlancAEnlever = nbPionsAEnlever;
-        }
-        String action = "A" + coord.carLigne() + coord.carColonne() + ","
-                + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
-                + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
-        actions.ajouterAction(action);
+        return nbAdversairesAdjacent;
     }
+    
 }
