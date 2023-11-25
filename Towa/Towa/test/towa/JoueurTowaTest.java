@@ -22,7 +22,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau4();
         // testActionsPossibles_niveau5();
         // testActionsPossibles_niveau6();
-        testActionsPossibles_niveau7();
+        // testActionsPossibles_niveau7();
+        testActionsPossibles_niveau8();
     }
         
     /**
@@ -256,6 +257,35 @@ public class JoueurTowaTest {
         assertTrue(actionsPossibles.contient("AlF,22,20"));
     }
     
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 8.
+     */
+    public void testActionsPossibles_niveau8() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 8;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // fusion d'un pion avec perte d'un pion : possible
+        assertTrue(actionsPossibles.contient("FmG,26,20"));
+        // fusion d'une tour sans effet : possible
+        assertTrue(actionsPossibles.contient("FbA,27,20"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // fusion sur une tour de hauteur 4 : possible
+        assertTrue(actionsPossibles.contient("FlF,27,16"));
+        // fusion de deux pions blancs : aucun changements sur le nombre de pions dans le plateau : possible
+        assertTrue(actionsPossibles.contient("FcE,27,20"));
+    }
 
     @Test
     public void testNbPions() {

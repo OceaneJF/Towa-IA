@@ -21,10 +21,17 @@ public class PionsAdverses {
         return new Coordonnees(c.ligne + Direction.mvtVertic(d),
                 c.colonne + Direction.mvtHoriz(d));
     }
-    
-    static Coordonnees positionSuivante(Coordonnees coord, Direction d){
+
+    /**
+     * Cette fonction renvoie la position suivante de la case à vérifier
+     *
+     * @param coord les coordonnées de la case d'avant
+     * @param d la direnction à suivre
+     * @return les coordonnées le la case suivante en suivant la direction d.
+     */
+    static Coordonnees positionSuivante(Coordonnees coord, Direction d) {
         Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
-        switch(d){
+        switch (d) {
             case NORD:
                 coordS.ligne -= 1;
                 break;
@@ -104,10 +111,34 @@ public class PionsAdverses {
                         nbAdversairesAdjacents += plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur;
                     }
                 }
-
             }
         }
         return nbAdversairesAdjacents;
+    }
+
+    /**
+     * Retourne le nombre d'amis adjacents (en comptant les pions qui forment
+     * des tours.
+     *
+     * @param coord coordonnées de la case considérée
+     * @param couleur la couleur du joueur actif
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     * @return le nombre de pions amis adjacents.
+     */
+    static int casesAdjacentesFusion(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        int nbAmisAdjacents = 0;
+        for (Direction d : Direction.cardinales2()) {
+            Coordonnees pionSuivant = suivante(coord, d);
+            // Si il est dans le plateau
+            if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
+                // Si c'est un pion ami
+                if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur == couleur) {
+                    nbAmisAdjacents += plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur;
+                }
+            }
+        }
+        return nbAmisAdjacents;
     }
 
     /**
@@ -145,22 +176,22 @@ public class PionsAdverses {
                 }
             }
         }
-        if(niveau >=7){
+        if (niveau >= 7) {
             Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
             boolean caseVide;
-            for (Direction d : Direction.cardinales1()){
+            for (Direction d : Direction.cardinales1()) {
                 coordS.ligne = positionSuivante(coord, d).ligne;
                 coordS.colonne = positionSuivante(coord, d).colonne;
                 caseVide = true;
-                // Tant que la case vérifiée est dans le plateau et que la case d'avant est vide
-                while(estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide){
-                    // Si la case est remplie
-                    if(plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE){
+                // On cherche le premier pion dans la direction d.
+                while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
+                    // Si on a trouvé un pion
+                    if (plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE) {
                         caseVide = false;
                         // Si la case est remplie par un pion adverse
-                        if(plateau[coordS.ligne][coordS.colonne].couleur != couleur){
+                        if (plateau[coordS.ligne][coordS.colonne].couleur != couleur) {
                             // Et si la hauteur du pion adverse est inférieure à celle du pion activé
-                            if(hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur){
+                            if (hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur) {
                                 nbAdversairesDansLigneColonne += plateau[coordS.ligne][coordS.colonne].hauteur;
                             }
                         }
@@ -173,11 +204,46 @@ public class PionsAdverses {
 
         return nbAdversairesDansLigneColonne;
     }
-    
+
     /**
-     * Code ancien
-     * Cette fonction permet de déterminer combien de pions adverses sont
-     * adjacents au pion du joueur.
+     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * même ligne et la même colonne.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif).
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu.
+     * @return le nombre d'adversaires présents sur la même ligne et sur la même
+     * colonne que le joueur actif.
+     */
+    static int amisDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        int nbAmisDansLigneColonne = 0;
+        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+        boolean caseVide;
+        for (Direction d : Direction.cardinales1()) {
+            coordS.ligne = positionSuivante(coord, d).ligne;
+            coordS.colonne = positionSuivante(coord, d).colonne;
+            caseVide = true;
+            // On cherche le premier pion dans la direction d.
+            while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
+                // Si on a trouvé un pion
+                if (plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE) {
+                    caseVide = false;
+                    // Si la case est remplie par un pion ami
+                    if (plateau[coordS.ligne][coordS.colonne].couleur == couleur) {
+                        nbAmisDansLigneColonne += plateau[coordS.ligne][coordS.colonne].hauteur;
+                    }
+                }
+                coordS.ligne = positionSuivante(coordS, d).ligne;
+                coordS.colonne = positionSuivante(coordS, d).colonne;
+            }
+        }
+        return nbAmisDansLigneColonne;
+    }
+
+    /**
+     * Code ancien Cette fonction permet de déterminer combien de pions adverses
+     * sont adjacents au pion du joueur.
      *
      * @param coord coordonnées de la case où se trouve la tour à vérifier.
      * @param couleur la couleur de la tour à vérifier (le joueur actif)
@@ -234,5 +300,4 @@ public class PionsAdverses {
         }
         return nbAdversairesAdjacent;
     }*/
-
 }

@@ -42,6 +42,11 @@ public class JoueurTowa implements IJoueurTowa {
                     // on ajoute l'action dans les actions possibles
                     ajoutActionActivation(coord, actions, nbPions, couleurJoueur, plateau, niveau);
                 }
+                // si l'action de fusion d'une tour de cette couleur est possible sur cette case
+                if (fusionPossible(plateau, coord, couleurJoueur, niveau)) {
+                    // on ajoute l'action dans les actions possibles
+                    ajoutActionFusion(coord, actions, nbPions, couleurJoueur, plateau, niveau);
+                }
             }
         }
         System.out.println("actionsPossibles : fin");
@@ -102,6 +107,33 @@ public class JoueurTowa implements IJoueurTowa {
             estPossible = false;
         }
         if (niveau >= 3) {
+            // Il faut qu'il y ait une tour de la couleur du joueur.
+            if (!plateau[coord.ligne][coord.colonne].tourPresente()) {
+                estPossible = false;
+            } else if (plateau[coord.ligne][coord.colonne].couleur != couleur) {
+                estPossible = false;
+            }
+        }
+        return estPossible;
+    }
+    
+    /**
+     * Indique s'il est possible d'actionner la fusion d'une une tour sur une case pour ce
+     * plateau, ce joueur, dans ce niveau.
+     *
+     * @param plateau le plateau
+     * @param coord coordonnées de la case à considérer
+     * @param couleur couleur du joueur
+     * @param niveau le niveau du jeu
+     * @return vrai ssi l'activation d'une tour sur cette case est autorisée
+     * dans ce niveau
+     */
+    boolean fusionPossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
+        boolean estPossible = true;
+        if (niveau < 8) {
+            estPossible = false;
+        }
+        if (niveau >= 8) {
             // Il faut qu'il y ait une tour de la couleur du joueur.
             if (!plateau[coord.ligne][coord.colonne].tourPresente()) {
                 estPossible = false;
@@ -200,4 +232,39 @@ public class JoueurTowa implements IJoueurTowa {
         actions.ajouterAction(action);
     }
 
+    
+    /**
+     * Ajout d'une action de fusion dans l'ensemble des actions possibles.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à fusionner
+     * @param actions l'ensemble des actions possibles (en construction)
+     * @param nbPions le nombre de pions par couleur sur le plateau avant de
+     * jouer l'action
+     * @param couleur la couleur de la tour à fusionner (le joueur actif)
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     */
+    void ajoutActionFusion(Coordonnees coord, ActionsPossibles actions,
+            NbPions nbPions, char couleur, Case[][] plateau, int niveau) {
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int nbAmisAdjacent = PionsAdverses.casesAdjacentesFusion(coord, couleur, plateau, niveau);
+        nbAmisAdjacent += PionsAdverses.amisDansLigneEtColonne(coord, couleur, plateau, niveau);
+        int nbPionsPerdus = 0;
+        if(nbAmisAdjacent + hauteurTour > 4){
+            nbPionsPerdus = nbAmisAdjacent + hauteurTour - 4;
+        }
+        // Construction de l'action-meusure de fusion.
+        int pionsNoirAEnlever = 0;
+        int pionsBlancAEnlever = 0;
+        if (couleur == Case.CAR_NOIR) {
+            pionsNoirAEnlever = nbPionsPerdus;
+        }
+        if (couleur == Case.CAR_BLANC) {
+            pionsBlancAEnlever = nbPionsPerdus;
+        }
+        String action = "F" + coord.carLigne() + coord.carColonne() + ","
+                + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
+                + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
+        actions.ajouterAction(action);
+    }
 }
