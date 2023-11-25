@@ -21,6 +21,25 @@ public class PionsAdverses {
         return new Coordonnees(c.ligne + Direction.mvtVertic(d),
                 c.colonne + Direction.mvtHoriz(d));
     }
+    
+    static Coordonnees positionSuivante(Coordonnees coord, Direction d){
+        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+        switch(d){
+            case NORD:
+                coordS.ligne -= 1;
+                break;
+            case SUD:
+                coordS.ligne += 1;
+                break;
+            case EST:
+                coordS.colonne += 1;
+                break;
+            case OUEST:
+                coordS.colonne -= 1;
+                break;
+        }
+        return coordS;
+    }
 
     /**
      * Indique si ces coordonnées sont dans le plateau.
@@ -74,7 +93,7 @@ public class PionsAdverses {
     static int casesAdjacentesActivation(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
         int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
         int nbAdversairesAdjacents = 0;
-        for (Direction d : Direction.cardinales()) {
+        for (Direction d : Direction.cardinales2()) {
             Coordonnees pionSuivant = suivante(coord, d);
             // Si il est dans le plateau
             if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
@@ -92,6 +111,71 @@ public class PionsAdverses {
     }
 
     /**
+     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * même ligne et la même colonne.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif).
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu.
+     * @return le nombre d'adversaires présents sur la même ligne et sur la même
+     * colonne que le joueur actif.
+     */
+    static int estDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int nbAdversairesDansLigneColonne = 0;
+        if (niveau == 6) {
+            // On parcours la ligne où se trouve le pion à activer
+            for (int j = 0; j < plateau[coord.ligne].length; j++) {
+                //On test si le pion est un adversaire
+                if (plateau[coord.ligne][j].couleur != couleur && plateau[coord.ligne][j].couleur != Case.CAR_VIDE) {
+                    // On test si la hauteur de l'adversaire est plus petite que la tour du joueur.
+                    if (hauteurTour > plateau[coord.ligne][j].hauteur) {
+                        nbAdversairesDansLigneColonne += plateau[coord.ligne][j].hauteur;
+                    }
+                }
+            }
+            for (int i = 0; i < plateau.length; i++) {
+                //On test si le pion est un adversaire
+                if (plateau[i][coord.colonne].couleur != couleur && plateau[i][coord.colonne].couleur != Case.CAR_VIDE) {
+                    // On test si la hauteur de l'adversaire est plus petite que la tour du joueur.
+                    if (hauteurTour > plateau[i][coord.colonne].hauteur) {
+                        nbAdversairesDansLigneColonne += plateau[i][coord.colonne].hauteur;
+                    }
+                }
+            }
+        }
+        if(niveau >=7){
+            Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+            boolean caseVide;
+            for (Direction d : Direction.cardinales1()){
+                coordS.ligne = positionSuivante(coord, d).ligne;
+                coordS.colonne = positionSuivante(coord, d).colonne;
+                caseVide = true;
+                // Tant que la case vérifiée est dans le plateau et que la case d'avant est vide
+                while(estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide){
+                    // Si la case est remplie
+                    if(plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE){
+                        caseVide = false;
+                        // Si la case est remplie par un pion adverse
+                        if(plateau[coordS.ligne][coordS.colonne].couleur != couleur){
+                            // Et si la hauteur du pion adverse est inférieure à celle du pion activé
+                            if(hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur){
+                                nbAdversairesDansLigneColonne += plateau[coordS.ligne][coordS.colonne].hauteur;
+                            }
+                        }
+                    }
+                    coordS.ligne = positionSuivante(coordS, d).ligne;
+                    coordS.colonne = positionSuivante(coordS, d).colonne;
+                }
+            }
+        }
+
+        return nbAdversairesDansLigneColonne;
+    }
+    
+    /**
+     * Code ancien
      * Cette fonction permet de déterminer combien de pions adverses sont
      * adjacents au pion du joueur.
      *
@@ -150,43 +234,5 @@ public class PionsAdverses {
         }
         return nbAdversairesAdjacent;
     }*/
-    /**
-     * Cette fonction permet de déterminer combien de pions adverses sont sur la
-     * même ligne et la même colonne.
-     *
-     * @param coord coordonnées de la case où se trouve la tour à vérifier.
-     * @param couleur la couleur de la tour à vérifier (le joueur actif).
-     * @param plateau le plateau de jeu
-     * @param niveau le niveau du jeu.
-     * @return le nombre d'adversaires présents sur la même ligne et sur la même
-     * colonne que le joueur actif.
-     */
-    static int estDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
-        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
-        int nbAdversairesDansLigneColonne = 0;
-        if (niveau >= 6) {
-            // On parcours la ligne où se trouve le pion à activer
-            for (int j = 0; j < plateau[coord.ligne].length; j++) {
-                //On test si le pion est un adversaire
-                if (plateau[coord.ligne][j].couleur != couleur && plateau[coord.ligne][j].couleur != Case.CAR_VIDE) {
-                    // On test si la hauteur de l'adversaire est plus petite que la tour du joueur.
-                    if (hauteurTour > plateau[coord.ligne][j].hauteur) {
-                        nbAdversairesDansLigneColonne += plateau[coord.ligne][j].hauteur;
-                    }
-                }
-            }
-            for (int i = 0; i < plateau.length; i++) {
-                //On test si le pion est un adversaire
-                if (plateau[i][coord.colonne].couleur != couleur && plateau[i][coord.colonne].couleur != Case.CAR_VIDE) {
-                    // On test si la hauteur de l'adversaire est plus petite que la tour du joueur.
-                    if (hauteurTour > plateau[i][coord.colonne].hauteur) {
-                        nbAdversairesDansLigneColonne += plateau[i][coord.colonne].hauteur;
-                    }
-                }
-            }
-        }
-
-        return nbAdversairesDansLigneColonne;
-    }
 
 }

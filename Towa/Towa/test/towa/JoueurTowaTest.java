@@ -21,7 +21,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau3();
         // testActionsPossibles_niveau4();
         // testActionsPossibles_niveau5();
-        testActionsPossibles_niveau6();
+        // testActionsPossibles_niveau6();
+        testActionsPossibles_niveau7();
     }
         
     /**
@@ -222,6 +223,37 @@ public class JoueurTowaTest {
         assertTrue(actionsPossibles.contient("AlF,21,20"));
         assertTrue(actionsPossibles.contient("PmB,27,21"));
         assertTrue(actionsPossibles.contient("PmB,27,21"));
+    }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 7.
+     */
+    public void testActionsPossibles_niveau7() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 7;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // activation d'une tour avec un blanc adjacent, deux blancs dans la ligne et un blanc protégé : possible
+        assertTrue(actionsPossibles.contient("AcK,27,17"));
+        // activation avec un blanc sur la colonne et un noir qui protège un blanc : possible
+        assertTrue(actionsPossibles.contient("AnG,27,19"));
+        // activation avec plusieurs pions blancs protégés par pion blanc et pion noir : possible
+        assertTrue(actionsPossibles.contient("AlE,27,17"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // activation avec aucun pion dans la ligne ni dans la colonne : possible
+        assertTrue(actionsPossibles.contient("AdI,27,20"));
+        // activation avec des pions adverses adjacents et dans la même ligne et un noir protégé par un blanc : possible
+        assertTrue(actionsPossibles.contient("AlF,22,20"));
     }
     
 

@@ -19,12 +19,23 @@ enum Direction {
     SUD_EST,
     SUD_OUEST;
 
+    
     /**
      * Renvoie les quatre directions cardinales dans un tableau.
      *
      * @return tableau contenant les quatre directions cardinales.
      */
-    static Direction[] cardinales() {
+    static Direction[] cardinales1() {
+        Direction[] directions = {NORD, SUD, EST, OUEST};
+        return directions;
+    }
+    
+    /**
+     * Renvoie les quatre directions cardinales dans un tableau.
+     *
+     * @return tableau contenant les quatre directions cardinales.
+     */
+    static Direction[] cardinales2() {
         Direction[] directions = {NORD_EST,NORD_OUEST,SUD_EST,SUD_OUEST};
         return directions;
     }
