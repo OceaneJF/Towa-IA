@@ -55,6 +55,7 @@ public class JoueurTowa implements IJoueurTowa {
      * @param plateau le plateau
      * @param coord coordonnées de la case à considérer
      * @param couleur couleur du joueur
+     * @param niveau le niveau du jeu
      * @return vrai ssi la pose d'un pion sur cette case est autorisée dans ce
      * niveau
      */
@@ -91,6 +92,7 @@ public class JoueurTowa implements IJoueurTowa {
      * @param plateau le plateau
      * @param coord coordonnées de la case à considérer
      * @param couleur couleur du joueur
+     * @param niveau le niveau du jeu
      * @return vrai ssi l'activation d'une tour sur cette case est autorisée
      * dans ce niveau
      */
@@ -140,6 +142,8 @@ public class JoueurTowa implements IJoueurTowa {
      * @param nbPions le nombre de pions par couleur sur le plateau avant de
      * jouer l'action
      * @param couleur la couleur du pion à ajouter
+     * @param niveau le niveau du jeu
+     * @param plateau le plateau du jeu
      */
     void ajoutActionPose(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur, int niveau, Case[][] plateau) {
@@ -148,7 +152,7 @@ public class JoueurTowa implements IJoueurTowa {
             pionsAAjouter = 1;
         }
         if (niveau >= 5) {
-            if (PionsAdverses.casesAdjacentes(coord, couleur, plateau, 1, niveau) >= 1) {
+            if (PionsAdverses.casesAdjacentesPose(coord, couleur, plateau, niveau) >= 1) {
                 pionsAAjouter = 2;
             }
         }
@@ -175,10 +179,11 @@ public class JoueurTowa implements IJoueurTowa {
      * jouer l'action
      * @param couleur la couleur de la tour à activer (le joueur actif)
      * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
      */
     void ajoutActionActivation(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur, Case[][] plateau, int niveau) {
-        int nbAdversairesAdjacent = PionsAdverses.casesAdjacentes(coord, couleur, plateau, 0, niveau);
+        int nbAdversairesAdjacent = PionsAdverses.casesAdjacentesActivation(coord, couleur, plateau, niveau);
         nbAdversairesAdjacent += PionsAdverses.estDansLigneEtColonne(coord, couleur, plateau, niveau);
         // Construction de l'action-meusure d'activation.
         int pionsNoirAEnlever = 0;

@@ -10,10 +10,10 @@ package towa;
  */
 enum Direction {
     
-//    NORD,
-//    SUD,
-//    EST,
-//    OUEST,
+    NORD,
+    SUD,
+    EST,
+    OUEST,
     NORD_EST,
     NORD_OUEST,
     SUD_EST,
@@ -25,7 +25,7 @@ enum Direction {
      * @return tableau contenant les quatre directions cardinales.
      */
     static Direction[] cardinales() {
-        Direction[] directions = {NORD_EST, SUD_EST, NORD_OUEST, SUD_OUEST};
+        Direction[] directions = {NORD_EST,NORD_OUEST,SUD_EST,SUD_OUEST};
         return directions;
     }
 
@@ -39,10 +39,16 @@ enum Direction {
     static int mvtHoriz(Direction dir) {
         int dh = -2;
         switch (dir) {
+            case NORD:
+            case SUD:
+                dh = 0;
+                break;
+            case EST:
             case NORD_EST:
             case SUD_EST:
                 dh = 1;
                 break;
+            case OUEST:
             case NORD_OUEST:
             case SUD_OUEST:
                 dh = -1;
@@ -61,10 +67,16 @@ enum Direction {
     static int mvtVertic(Direction dir) {
         int dv = -2;
         switch (dir) {
+            case EST:
+            case OUEST:
+                dv = 0;
+                break;
+            case NORD:
             case NORD_EST:
             case NORD_OUEST:
                 dv = -1;
                 break;
+            case SUD:
             case SUD_EST:
             case SUD_OUEST:
                 dv = 1;

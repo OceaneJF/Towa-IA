@@ -206,9 +206,9 @@ public class JoueurTowaTest {
         ActionsPossibles actionsPossibles
                 = new ActionsPossibles(actionsPossiblesDepuisPlateau);
         // activation avec un adversaire dans la ligne mais de même hauteur : possible
-        //assertTrue(actionsPossibles.contient("AbA,27,20"));
+        assertTrue(actionsPossibles.contient("AbA,27,20"));
         // activation avec un adversaire de qui doit être effacé : possible
-        //assertTrue(actionsPossibles.contient("AkJ,27,19"));
+        assertTrue(actionsPossibles.contient("AkJ,27,19"));
         // activation avec plusieurs pions adverses dans la même colonne : possible
         assertTrue(actionsPossibles.contient("AnG,27,17"));
         // 2 - joueur blanc
@@ -220,6 +220,8 @@ public class JoueurTowaTest {
         assertTrue(actionsPossibles.contient("AdI,27,20"));
         // activation avec des pions adverses adjacents et dans la même ligne : possible
         assertTrue(actionsPossibles.contient("AlF,21,20"));
+        assertTrue(actionsPossibles.contient("PmB,27,21"));
+        assertTrue(actionsPossibles.contient("PmB,27,21"));
     }
     
 
