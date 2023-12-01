@@ -47,7 +47,72 @@ public class PionsAdverses {
         }
         return coordS;
     }
+    
+    /**
+     * Cette méthode indique la direction à suivre à partir d'un bord du plateau (qui se traduit par une autre direction)
+     * @param d un des bords du plateau
+     * @return la direction à suivre
+     */
+    static Direction DirectionASuivre(Direction d){
+        switch (d) {
+            case NORD:
+                return Direction.SUD;
+            case SUD:
+                return Direction.NORD;
+            case EST:
+                return Direction.OUEST;
+            default:
+                return Direction.EST;
+        }
+    }
+    
+    /**
+     * Cette méthode permet d'indiquer la direction pour parcourir toutes les lignes ou colonnes selon la diretion indiquée.
+     * @param d la direction indiquée
+     * @return la direction à parcourir
+     */
+    static Direction parcourirDirection(Direction d){
+        switch (d) {
+            case NORD:
+            case SUD:
+                return Direction.EST;
+            case EST:
+            default:
+                return Direction.SUD;
+        }
+    }
 
+    static Coordonnees initDepart(Direction d) {
+        Coordonnees coord = new Coordonnees(0, 0);
+        switch (d) {
+            case SUD:
+                coord.ligne = Coordonnees.NB_LIGNES;
+                break;
+            case OUEST:
+                coord.colonne = Coordonnees.NB_COLONNES;
+                break;
+        }
+        return coord;
+    }
+    
+    static Coordonnees initEnFonctionDeLaDirection(Direction d, Coordonnees coord){
+        switch(d){
+            case NORD:
+                coord.ligne = 0;
+                break;
+            case SUD:
+                coord.ligne = Coordonnees.NB_LIGNES -1;
+                break;
+            case OUEST:
+                coord.colonne = 0;
+                break;
+            case EST:
+                coord.colonne = Coordonnees.NB_COLONNES -1;
+                break;
+        }
+        return coord;
+    }
+    
     /**
      * Indique si ces coordonnées sont dans le plateau.
      *
@@ -206,7 +271,7 @@ public class PionsAdverses {
     }
 
     /**
-     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * Cette fonction permet de déterminer combien de pions amis sont sur la
      * même ligne et la même colonne.
      *
      * @param coord coordonnées de la case où se trouve la tour à vérifier.
@@ -240,64 +305,5 @@ public class PionsAdverses {
         }
         return nbAmisDansLigneColonne;
     }
-
-    /**
-     * Code ancien Cette fonction permet de déterminer combien de pions adverses
-     * sont adjacents au pion du joueur.
-     *
-     * @param coord coordonnées de la case où se trouve la tour à vérifier.
-     * @param couleur la couleur de la tour à vérifier (le joueur actif)
-     * @param plateau le plateau de jeu
-     * @param appel permet d'appeler la fonction de plusieurs manières
-     * différentes.
-     * @param niveau le niveau du jeu.
-     * @return le nombre d'adversaires adjacents.
-     */
-    /*static int casesAdjacentes(Coordonnees coord, char couleur, Case[][] plateau, int appel, int niveau) {
-        // Détermination des cases adjacentes à la tour activée.
-        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
-        int ligneMin = coord.ligne - 1;
-        if (ligneMin < 0) {
-            ligneMin = 0;
-        }
-        int ligneMax = coord.ligne + 1;
-        if (ligneMax > Coordonnees.NB_LIGNES - 1) {
-            ligneMax = Coordonnees.NB_LIGNES - 1;
-        }
-        int colonneMin = coord.colonne - 1;
-        if (colonneMin < 0) {
-            colonneMin = 0;
-        }
-        int colonneMax = coord.colonne + 1;
-        if (colonneMax > Coordonnees.NB_COLONNES - 1) {
-            colonneMax = Coordonnees.NB_COLONNES - 1;
-        }
-        // Calcul du nombre de pions enlevés.
-        int nbAdversairesAdjacent = 0;
-        for (int i = ligneMin; i <= ligneMax; i++) {
-            for (int j = colonneMin; j <= colonneMax; j++) {
-                // Si c'est un adversaire
-                if (plateau[i][j].couleur != couleur && plateau[i][j].couleur != Case.CAR_VIDE) {
-                    // Si la fonction est appelée depuis la fonction d'activation
-                    if (appel == 0) {
-                        if (niveau >= 6
-                                && plateau[i][j] != plateau[coord.ligne][colonneMin]
-                                && plateau[i][j] != plateau[coord.ligne][colonneMax]
-                                && plateau[i][j] != plateau[ligneMin][coord.colonne]
-                                && plateau[i][j] != plateau[ligneMax][coord.colonne]
-                                && hauteurTour > plateau[i][j].hauteur) {
-                            nbAdversairesAdjacent += plateau[i][j].hauteur;
-                        } else if (niveau < 6 && hauteurTour > plateau[i][j].hauteur) {
-                            nbAdversairesAdjacent += plateau[i][j].hauteur;
-                        }
-                    }
-                    // Si la fonction est appelée depuis la fonction de pose d'un pion
-                    if (appel == 1 && plateau[coord.ligne][coord.colonne].couleur == Case.CAR_VIDE) {
-                        nbAdversairesAdjacent++;
-                    }
-                }
-            }
-        }
-        return nbAdversairesAdjacent;
-    }*/
+    
 }

@@ -23,7 +23,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau5();
         // testActionsPossibles_niveau6();
         // testActionsPossibles_niveau7();
-        testActionsPossibles_niveau8();
+        // testActionsPossibles_niveau8();
+        testActionsPossibles_niveau9();
     }
         
     /**
@@ -285,6 +286,35 @@ public class JoueurTowaTest {
         assertTrue(actionsPossibles.contient("FlF,27,16"));
         // fusion de deux pions blancs : aucun changements sur le nombre de pions dans le plateau : possible
         assertTrue(actionsPossibles.contient("FcE,27,20"));
+    }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 9.
+     */
+    public void testActionsPossibles_niveau9() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU2);
+        // sur le plateau initial : 27 pions noirs et 20 pions blancs
+        int niveau = 9;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // action de chatons kamikazes dans la direction nord
+        assertTrue(actionsPossibles.contient("CN,18,9"));
+        // action de chatons kamikazes dans la direction sud
+        assertTrue(actionsPossibles.contient("CS,19,15"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // action de chatons kamikazes dans la direction ouest
+        assertTrue(actionsPossibles.contient("CO,17,13"));
+        // action de chatons kamikazes dans la direction est
+        assertTrue(actionsPossibles.contient("CE,21,11"));
     }
 
     @Test

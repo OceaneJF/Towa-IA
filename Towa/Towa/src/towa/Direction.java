@@ -95,4 +95,23 @@ enum Direction {
         }
         return dv;
     }
+    
+    String premiereLettre(){
+        String lettre =" ";
+        switch(this){
+            case NORD:
+                lettre = "N";
+                break;
+            case SUD:
+                lettre = "S";
+                break;
+            case EST:
+                lettre = "E";
+                break;
+            case OUEST:
+                lettre = "O";
+                break;
+        }
+        return lettre;
+    }
 }

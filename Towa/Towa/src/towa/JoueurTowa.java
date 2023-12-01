@@ -49,6 +49,9 @@ public class JoueurTowa implements IJoueurTowa {
                 }
             }
         }
+        for (Direction d : Direction.cardinales1()) {
+            ajoutActionChatonsKamikazes(d, actions, nbPions, plateau, niveau);
+        }
         System.out.println("actionsPossibles : fin");
         return actions.nettoyer();
     }
@@ -116,17 +119,17 @@ public class JoueurTowa implements IJoueurTowa {
         }
         return estPossible;
     }
-    
+
     /**
-     * Indique s'il est possible d'actionner la fusion d'une une tour sur une case pour ce
-     * plateau, ce joueur, dans ce niveau.
+     * Indique s'il est possible d'actionner la fusion d'une une tour sur une
+     * case pour ce plateau, ce joueur, dans ce niveau.
      *
      * @param plateau le plateau
      * @param coord coordonnées de la case à considérer
      * @param couleur couleur du joueur
      * @param niveau le niveau du jeu
-     * @return vrai ssi l'activation d'une tour sur cette case est autorisée
-     * dans ce niveau
+     * @return vrai ssi la fusion d'une tour sur cette case est autorisée dans
+     * ce niveau
      */
     boolean fusionPossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
         boolean estPossible = true;
@@ -232,7 +235,6 @@ public class JoueurTowa implements IJoueurTowa {
         actions.ajouterAction(action);
     }
 
-    
     /**
      * Ajout d'une action de fusion dans l'ensemble des actions possibles.
      *
@@ -250,7 +252,7 @@ public class JoueurTowa implements IJoueurTowa {
         int nbAmisAdjacent = PionsAdverses.casesAdjacentesFusion(coord, couleur, plateau, niveau);
         nbAmisAdjacent += PionsAdverses.amisDansLigneEtColonne(coord, couleur, plateau, niveau);
         int nbPionsPerdus = 0;
-        if(nbAmisAdjacent + hauteurTour > 4){
+        if (nbAmisAdjacent + hauteurTour > 4) {
             nbPionsPerdus = nbAmisAdjacent + hauteurTour - 4;
         }
         // Construction de l'action-meusure de fusion.
@@ -267,4 +269,44 @@ public class JoueurTowa implements IJoueurTowa {
                 + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
         actions.ajouterAction(action);
     }
+
+    void ajoutActionChatonsKamikazes(Direction d, ActionsPossibles actions,
+            NbPions nbPions, Case[][] plateau, int niveau) {
+        int pionsNoirAEnlever = 0;
+        int pionsBlancAEnlever = 0;
+        int j;
+        Direction dASuivre = PionsAdverses.DirectionASuivre(d);
+        Direction dAParcourir = PionsAdverses.parcourirDirection(d);
+        Coordonnees coord = PionsAdverses.initDepart(d);
+        //coord = 
+        boolean estUnPion;
+        for (int i = 0; i < plateau.length; i++) {
+            estUnPion = false;
+            j=0;
+            coord = PionsAdverses.initEnFonctionDeLaDirection(d, coord);
+            while (!estUnPion && j < plateau.length) {
+                if (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE) {
+                    estUnPion = true;
+                    if(plateau[coord.ligne][coord.colonne].couleur == Case.CAR_BLANC){
+                        pionsBlancAEnlever += plateau[coord.ligne][coord.colonne].hauteur;
+                    }
+                    if(plateau[coord.ligne][coord.colonne].couleur == Case.CAR_NOIR){
+                        pionsNoirAEnlever += plateau[coord.ligne][coord.colonne].hauteur;
+                    }
+                }
+                j++;
+                coord = PionsAdverses.positionSuivante(coord, dASuivre);
+            }
+            coord = PionsAdverses.positionSuivante(coord, dAParcourir);
+        }
+        String action = "C" + d.premiereLettre() + ","
+                + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
+                + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
+        actions.ajouterAction(action);
+    }
+
+    
+    
+    
+
 }
