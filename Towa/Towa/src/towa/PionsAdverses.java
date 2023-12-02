@@ -47,13 +47,15 @@ public class PionsAdverses {
         }
         return coordS;
     }
-    
+
     /**
-     * Cette méthode indique la direction à suivre à partir d'un bord du plateau (qui se traduit par une autre direction)
+     * Cette méthode indique la direction à suivre à partir d'un bord du plateau
+     * (qui se traduit par une autre direction)
+     *
      * @param d un des bords du plateau
      * @return la direction à suivre
      */
-    static Direction DirectionASuivre(Direction d){
+    static Direction DirectionASuivre(Direction d) {
         switch (d) {
             case NORD:
                 return Direction.SUD;
@@ -65,13 +67,15 @@ public class PionsAdverses {
                 return Direction.EST;
         }
     }
-    
+
     /**
-     * Cette méthode permet d'indiquer la direction pour parcourir toutes les lignes ou colonnes selon la diretion indiquée.
+     * Cette méthode permet d'indiquer la direction pour parcourir toutes les
+     * lignes ou colonnes selon la diretion indiquée.
+     *
      * @param d la direction indiquée
      * @return la direction à parcourir
      */
-    static Direction parcourirDirection(Direction d){
+    static Direction parcourirDirection(Direction d) {
         switch (d) {
             case NORD:
             case SUD:
@@ -82,6 +86,14 @@ public class PionsAdverses {
         }
     }
 
+    /**
+     * Cette fonction permet d'initialiser les lignes et colonnes lorsqu'on
+     * parcours le plateau selon la direction dans laquelle on veut aller. Elle
+     * est utilisée pour l'option des chatons kamikazes.
+     *
+     * @param d la direction depuis laquelle on veut partir.
+     * @return les coordonnées de départ selon la direction.
+     */
     static Coordonnees initDepart(Direction d) {
         Coordonnees coord = new Coordonnees(0, 0);
         switch (d) {
@@ -94,25 +106,37 @@ public class PionsAdverses {
         }
         return coord;
     }
-    
-    static Coordonnees initEnFonctionDeLaDirection(Direction d, Coordonnees coord){
-        switch(d){
+
+    /**
+     * Cette fonction permet de ré-initialiser seulement les coordonnées voulus
+     * selon la direction. Par exemple, si je parcours mes lignes, et pour
+     * chaque ligne, je parcours une colonne jusqu'à atteindre une certaine
+     * condition, lorsque je passe à ma ligne suivant, il faut que je remette la
+     * colonne à 0.
+     * Elle est utilisées dans les chatons kamikazes.
+     *
+     * @param d la direction souhaitée
+     * @param coord les coordonnées de la case où l'on s'est arrêté.
+     * @return les coordonnées de la case, remise à 0.
+     */
+    static Coordonnees initEnCours(Direction d, Coordonnees coord) {
+        switch (d) {
             case NORD:
                 coord.ligne = 0;
                 break;
             case SUD:
-                coord.ligne = Coordonnees.NB_LIGNES -1;
+                coord.ligne = Coordonnees.NB_LIGNES - 1;
                 break;
             case OUEST:
                 coord.colonne = 0;
                 break;
             case EST:
-                coord.colonne = Coordonnees.NB_COLONNES -1;
+                coord.colonne = Coordonnees.NB_COLONNES - 1;
                 break;
         }
         return coord;
     }
-    
+
     /**
      * Indique si ces coordonnées sont dans le plateau.
      *
@@ -164,6 +188,7 @@ public class PionsAdverses {
      */
     static int casesAdjacentesActivation(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
         int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int niveauTour = hauteurTour + plateau[coord.ligne][coord.colonne].altitude;
         int nbAdversairesAdjacents = 0;
         for (Direction d : Direction.cardinales2()) {
             Coordonnees pionSuivant = suivante(coord, d);
@@ -172,7 +197,7 @@ public class PionsAdverses {
                 // Si c'est un adversaire
                 if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != couleur && plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != Case.CAR_VIDE) {
                     // Si la hauteur de la tour est supérieur à celle de la tour adverse
-                    if (niveau >= 6 && hauteurTour > plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur) {
+                    if (niveau >= 6 && niveauTour > (plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur + plateau[pionSuivant.ligne][pionSuivant.colonne].altitude)){
                         nbAdversairesAdjacents += plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur;
                     }
                 }
@@ -219,6 +244,7 @@ public class PionsAdverses {
      */
     static int estDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
         int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int niveauTour = plateau[coord.ligne][coord.colonne].altitude + hauteurTour;
         int nbAdversairesDansLigneColonne = 0;
         if (niveau == 6) {
             // On parcours la ligne où se trouve le pion à activer
@@ -256,7 +282,7 @@ public class PionsAdverses {
                         // Si la case est remplie par un pion adverse
                         if (plateau[coordS.ligne][coordS.colonne].couleur != couleur) {
                             // Et si la hauteur du pion adverse est inférieure à celle du pion activé
-                            if (hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur) {
+                            if (niveauTour > plateau[coordS.ligne][coordS.colonne].hauteur + plateau[coordS.ligne][coordS.colonne].altitude) {
                                 nbAdversairesDansLigneColonne += plateau[coordS.ligne][coordS.colonne].hauteur;
                             }
                         }
@@ -305,5 +331,5 @@ public class PionsAdverses {
         }
         return nbAmisDansLigneColonne;
     }
-    
+
 }

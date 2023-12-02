@@ -24,7 +24,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau6();
         // testActionsPossibles_niveau7();
         // testActionsPossibles_niveau8();
-        testActionsPossibles_niveau9();
+        // testActionsPossibles_niveau9();
+        testActionsPossibles_niveau10();
     }
         
     /**
@@ -316,6 +317,37 @@ public class JoueurTowaTest {
         // action de chatons kamikazes dans la direction est
         assertTrue(actionsPossibles.contient("CE,21,11"));
     }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 10.
+     */
+    public void testActionsPossibles_niveau10() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU10);
+        // sur le plateau initial : 3 pions noirs et 20 pions blancs
+        int niveau = 10;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // Action d'activation avec des tours blanches de niveau 4 mais de hauteur inférieurs
+        assertTrue(actionsPossibles.contient("AbC,3,14"));
+        // Action de pose sur une tour de niveau 4 mais de hauteur 2 : impossible
+        assertFalse(actionsPossibles.contient("PbC,4,20"));
+        // Action de pose sur une case vide d'altitude 3 et avec un pion adverse à côté : impossible
+        assertFalse(actionsPossibles.contient("PgC,4,20"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // action de fusion sur un tour de niveau 3  et de hauteur 1 : perte de 2 pions
+        assertTrue(actionsPossibles.contient("FaD,3,18"));
+        // action d'activation d'une tour blanche avec une hauteur de 3 et qui détruit un noir
+        assertTrue(actionsPossibles.contient("AbE,2,20"));
+    }
 
     @Test
     public void testNbPions() {
@@ -463,5 +495,42 @@ public class JoueurTowaTest {
             + "o|   |N1 |   |   |   |   |   |N1 |   |   |   |   |   |   |   |   |\n"
             + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
             + "p|   |   |   |   |   |   |B1 |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n";
+    
+    
+    final String PLATEAU_NIVEAU10
+            = "   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P \n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "a|   |   |   |B12|   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "b|B3 |   |N22|N11|B3 |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "c|   |B31|  4|B4 |   |   |  2|   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "d|   |   |B21|  2|   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "e|B1 |   |   |  4|   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "f|   |   |B3 |   |   |  3|   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "g|   |   |  3|   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "h|   |  4|   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "i|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "j|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "k|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "l|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "m|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "n|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "o|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "p|   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
             + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n";
 }

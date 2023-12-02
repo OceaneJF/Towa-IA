@@ -90,6 +90,15 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
         }
+        if (niveau >= 10) {
+            if (plateau[coord.ligne][coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur >= 4) {
+                estPossible = false;
+            }
+            // Si il y a des adversaires à côté et que le niveau de la tour est >= à 3 alors la pose n'est pas possible.
+            if (PionsAdverses.casesAdjacentesPose(coord, couleur, plateau, niveau) >= 1 && plateau[coord.ligne][coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur >= 3) {
+                estPossible = false;
+            }
+        }
         return estPossible;
     }
 
@@ -249,11 +258,12 @@ public class JoueurTowa implements IJoueurTowa {
     void ajoutActionFusion(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions, char couleur, Case[][] plateau, int niveau) {
         int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int niveauTour = plateau[coord.ligne][coord.colonne].altitude + hauteurTour;
         int nbAmisAdjacent = PionsAdverses.casesAdjacentesFusion(coord, couleur, plateau, niveau);
         nbAmisAdjacent += PionsAdverses.amisDansLigneEtColonne(coord, couleur, plateau, niveau);
         int nbPionsPerdus = 0;
-        if (nbAmisAdjacent + hauteurTour > 4) {
-            nbPionsPerdus = nbAmisAdjacent + hauteurTour - 4;
+        if (nbAmisAdjacent + niveauTour > 4) {
+            nbPionsPerdus = nbAmisAdjacent + niveauTour - 4;
         }
         // Construction de l'action-meusure de fusion.
         int pionsNoirAEnlever = 0;
@@ -282,15 +292,15 @@ public class JoueurTowa implements IJoueurTowa {
         boolean estUnPion;
         for (int i = 0; i < plateau.length; i++) {
             estUnPion = false;
-            j=0;
-            coord = PionsAdverses.initEnFonctionDeLaDirection(d, coord);
+            j = 0;
+            coord = PionsAdverses.initEnCours(d, coord);
             while (!estUnPion && j < plateau.length) {
                 if (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE) {
                     estUnPion = true;
-                    if(plateau[coord.ligne][coord.colonne].couleur == Case.CAR_BLANC){
+                    if (plateau[coord.ligne][coord.colonne].couleur == Case.CAR_BLANC) {
                         pionsBlancAEnlever += plateau[coord.ligne][coord.colonne].hauteur;
                     }
-                    if(plateau[coord.ligne][coord.colonne].couleur == Case.CAR_NOIR){
+                    if (plateau[coord.ligne][coord.colonne].couleur == Case.CAR_NOIR) {
                         pionsNoirAEnlever += plateau[coord.ligne][coord.colonne].hauteur;
                     }
                 }
@@ -304,9 +314,5 @@ public class JoueurTowa implements IJoueurTowa {
                 + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
         actions.ajouterAction(action);
     }
-
-    
-    
-    
 
 }
