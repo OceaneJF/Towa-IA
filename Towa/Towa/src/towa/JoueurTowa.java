@@ -47,6 +47,11 @@ public class JoueurTowa implements IJoueurTowa {
                     // on ajoute l'action dans les actions possibles
                     ajoutActionFusion(coord, actions, nbPions, couleurJoueur, plateau, niveau);
                 }
+                // si l'action de magie d'une tour de cette couleur est possible sur cette case
+                if (magiePossible(plateau, coord, couleurJoueur, niveau)) {
+                    // on ajoute l'action dans les actions possibles
+                    ajoutActionMagie(coord, actions, nbPions);
+                }
             }
         }
         for (Direction d : Direction.cardinales1()) {
@@ -155,6 +160,42 @@ public class JoueurTowa implements IJoueurTowa {
         }
         return estPossible;
     }
+    
+    /**
+     * Indique s'il est possible d'actionner la magie d'une une tour sur une
+     * case pour ce plateau, ce joueur, dans ce niveau.
+     *
+     * @param plateau le plateau
+     * @param coord coordonnées de la case à considérer
+     * @param couleur la couleur du joueur
+     * @param niveau le niveau du jeu
+     * @return vrai ssi la magie d'une tour sur cette case est autorisée dans
+     * ce niveau
+     */
+    boolean magiePossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
+        boolean estPossible = true;
+        if (niveau < 11) {
+            estPossible = false;
+        }
+        if (niveau >= 11) {
+            // Il faut qu'il y ait une tour de la couleur du joueur.
+            if (!plateau[coord.ligne][coord.colonne].tourPresente()) {
+                estPossible = false;
+            } else if (plateau[coord.ligne][coord.colonne].couleur != couleur) {
+                estPossible = false;
+            }
+            // Si il n'y a pas de tour dans la case symétrique
+            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].tourPresente()){
+                estPossible = false;
+            }
+            // Vérification du niveau
+            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur > 4){
+                estPossible = false;
+            }
+        }
+        return estPossible;
+    }
+    
 
     /**
      * Nombre de pions sur le plateau, de chaque couleur.
@@ -312,6 +353,24 @@ public class JoueurTowa implements IJoueurTowa {
         String action = "C" + d.premiereLettre() + ","
                 + (nbPions.nbPionsNoirs - pionsNoirAEnlever) + ","
                 + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
+        actions.ajouterAction(action);
+    }
+    
+    /**
+     * Cette fonction permet de retourner les coordonnées tels quels car la magie de fait que changer le pion de place et ne modifie pas son nombre de pions.
+     * @param coord coordonnées de la case où se trouve la tour à fusionner
+     * @param actions l'ensemble des actions possibles (en construction)
+     * @param nbPions le nombre de pions par couleur sur le plateau avant de
+     * jouer l'action
+     * @param couleur la couleur de la tour à fusionner (le joueur actif)
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     */
+    void ajoutActionMagie(Coordonnees coord, ActionsPossibles actions,
+            NbPions nbPions) {
+        String action = "M" + coord.carLigne() + coord.carColonne() + ","
+                + (nbPions.nbPionsNoirs) + ","
+                + (nbPions.nbPionsBlancs);
         actions.ajouterAction(action);
     }
 
