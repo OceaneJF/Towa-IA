@@ -104,6 +104,11 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
         }
+        if(niveau >=12){
+            if(plateau[coord.ligne][coord.colonne].nature != Case.CAR_TERRE){
+                estPossible = false;
+            }
+        }
         return estPossible;
     }
 
@@ -190,6 +195,9 @@ public class JoueurTowa implements IJoueurTowa {
             }
             // Vérification du niveau
             if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur > 4){
+                estPossible = false;
+            }
+            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].nature != Case.CAR_TERRE){
                 estPossible = false;
             }
         }
