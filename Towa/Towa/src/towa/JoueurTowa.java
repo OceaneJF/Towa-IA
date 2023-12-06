@@ -104,8 +104,8 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
         }
-        if(niveau >=12){
-            if(plateau[coord.ligne][coord.colonne].nature != Case.CAR_TERRE){
+        if (niveau >= 12) {
+            if (plateau[coord.ligne][coord.colonne].nature != Case.CAR_TERRE) {
                 estPossible = false;
             }
         }
@@ -165,7 +165,7 @@ public class JoueurTowa implements IJoueurTowa {
         }
         return estPossible;
     }
-    
+
     /**
      * Indique s'il est possible d'actionner la magie d'une une tour sur une
      * case pour ce plateau, ce joueur, dans ce niveau.
@@ -174,8 +174,8 @@ public class JoueurTowa implements IJoueurTowa {
      * @param coord coordonnées de la case à considérer
      * @param couleur la couleur du joueur
      * @param niveau le niveau du jeu
-     * @return vrai ssi la magie d'une tour sur cette case est autorisée dans
-     * ce niveau
+     * @return vrai ssi la magie d'une tour sur cette case est autorisée dans ce
+     * niveau
      */
     boolean magiePossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
         boolean estPossible = true;
@@ -190,20 +190,19 @@ public class JoueurTowa implements IJoueurTowa {
                 estPossible = false;
             }
             // Si il n'y a pas de tour dans la case symétrique
-            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].tourPresente()){
+            if (plateau[(Coordonnees.NB_LIGNES - 1) - coord.ligne][(Coordonnees.NB_COLONNES - 1) - coord.colonne].tourPresente()) {
                 estPossible = false;
             }
             // Vérification du niveau
-            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur > 4){
+            if (plateau[(Coordonnees.NB_LIGNES - 1) - coord.ligne][(Coordonnees.NB_COLONNES - 1) - coord.colonne].altitude + plateau[coord.ligne][coord.colonne].hauteur > 4) {
                 estPossible = false;
             }
-            if(plateau[(Coordonnees.NB_LIGNES-1)-coord.ligne][(Coordonnees.NB_COLONNES-1)-coord.colonne].nature != Case.CAR_TERRE){
+            if (plateau[(Coordonnees.NB_LIGNES - 1) - coord.ligne][(Coordonnees.NB_COLONNES - 1) - coord.colonne].nature != Case.CAR_TERRE) {
                 estPossible = false;
             }
         }
         return estPossible;
     }
-    
 
     /**
      * Nombre de pions sur le plateau, de chaque couleur.
@@ -247,6 +246,11 @@ public class JoueurTowa implements IJoueurTowa {
         if (niveau >= 5) {
             if (PionsAdverses.casesAdjacentesPose(coord, couleur, plateau, niveau) >= 1) {
                 pionsAAjouter = 2;
+            }
+        }
+        if (niveau >= 13) {
+            if (plateauCouvert(plateau, coord, couleur)) {
+                pionsAAjouter = 4 - plateau[coord.ligne][coord.colonne].altitude;
             }
         }
         int pionsNoirAAjouter = 0;
@@ -329,6 +333,17 @@ public class JoueurTowa implements IJoueurTowa {
         actions.ajouterAction(action);
     }
 
+    /**
+     * Ajout d'une action de chatons kamikazes dans l'ensemble des actions
+     * possibles.
+     *
+     * @param d la direction de départ des chatons kamikazes
+     * @param actions l'ensemble des actions possibles (en construction)
+     * @param nbPions e nombre de pions par couleur sur le plateau avant de
+     * jouer l'action
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     */
     void ajoutActionChatonsKamikazes(Direction d, ActionsPossibles actions,
             NbPions nbPions, Case[][] plateau, int niveau) {
         int pionsNoirAEnlever = 0;
@@ -337,7 +352,6 @@ public class JoueurTowa implements IJoueurTowa {
         Direction dASuivre = PionsAdverses.DirectionASuivre(d);
         Direction dAParcourir = PionsAdverses.parcourirDirection(d);
         Coordonnees coord = PionsAdverses.initDepart(d);
-        //coord = 
         boolean estUnPion;
         for (int i = 0; i < plateau.length; i++) {
             estUnPion = false;
@@ -363,9 +377,12 @@ public class JoueurTowa implements IJoueurTowa {
                 + (nbPions.nbPionsBlancs - pionsBlancAEnlever);
         actions.ajouterAction(action);
     }
-    
+
     /**
-     * Cette fonction permet de retourner les coordonnées tels quels car la magie de fait que changer le pion de place et ne modifie pas son nombre de pions.
+     * Cette fonction permet de retourner les coordonnées tels quels car la
+     * magie de fait que changer le pion de place et ne modifie pas son nombre
+     * de pions.
+     *
      * @param coord coordonnées de la case où se trouve la tour à fusionner
      * @param actions l'ensemble des actions possibles (en construction)
      * @param nbPions le nombre de pions par couleur sur le plateau avant de
@@ -382,4 +399,70 @@ public class JoueurTowa implements IJoueurTowa {
         actions.ajouterAction(action);
     }
 
+    /**
+     * Cette fonction retourne vrai si le plateau est couvert, faux sinon
+     *
+     * @param plateau le plateau de jeu
+     * @param coord les coordonnées du pion qui est jouée
+     * @param couleur la couleur du joueur
+     * @return vrai si le plateau est couvert
+     */
+    boolean plateauCouvert(Case[][] plateau, Coordonnees coord, char couleur) {
+        int j = 0;
+        int i = 0;
+        boolean noirDansLigne;
+        boolean blancDansLigne;
+        boolean plateauCouvert = true;
+        while (i < plateau.length && plateauCouvert) {
+            noirDansLigne = false;
+            blancDansLigne = false;
+            j = 0;
+            while (j < plateau.length && (!noirDansLigne || !blancDansLigne)) {
+                if (plateau[i][j].couleur == Case.CAR_NOIR) {
+                    noirDansLigne = true;
+                } else if (plateau[i][j].couleur == Case.CAR_BLANC) {
+                    blancDansLigne = true;
+                }
+                if (i == coord.ligne && j == coord.colonne) {
+                    if (couleur == Case.CAR_BLANC) {
+                        blancDansLigne = true;
+                    } else if (couleur == Case.CAR_NOIR) {
+                        noirDansLigne = true;
+                    }
+                }
+                j++;
+            }
+            if (!noirDansLigne || !blancDansLigne) {
+                plateauCouvert = false;
+            }
+            i++;
+        }
+        j = 0;
+        i = 0;
+        while (j < plateau.length && plateauCouvert) {
+            noirDansLigne = false;
+            blancDansLigne = false;
+            i =0;
+            while (i < plateau.length && (!noirDansLigne || !blancDansLigne)) {
+                if (plateau[i][j].couleur == Case.CAR_NOIR) {
+                    noirDansLigne = true;
+                } else if (plateau[i][j].couleur == Case.CAR_BLANC) {
+                    blancDansLigne = true;
+                }
+                if (i == coord.ligne && j == coord.colonne) {
+                    if (couleur == Case.CAR_BLANC) {
+                        blancDansLigne = true;
+                    } else if (couleur == Case.CAR_NOIR) {
+                        noirDansLigne = true;
+                    }
+                }
+                i++;
+            }
+            if (!noirDansLigne || !blancDansLigne) {
+                plateauCouvert = false;
+            }
+            j++;
+        }
+        return plateauCouvert;
+    }
 }

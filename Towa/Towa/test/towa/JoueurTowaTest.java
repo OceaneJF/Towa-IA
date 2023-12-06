@@ -27,7 +27,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau9();
         // testActionsPossibles_niveau10();
         // testActionsPossibles_niveau11();
-        testActionsPossibles_niveau12();
+        // testActionsPossibles_niveau12();
+        testActionsPossibles_niveau13();
     }
 
     /**
@@ -401,7 +402,7 @@ public class JoueurTowaTest {
                 = new ActionsPossibles(actionsPossiblesDepuisPlateau);
         // on peut afficher toutes les actions possibles calculées :
         actionsPossibles.afficher();
-        // Action de pose sur un case d'Eau : impossible
+        // Action de pose sur une case d'Eau : impossible
         assertFalse(actionsPossibles.contient("PgD,38,23"));
         // Action de pose sur une case Terre : possible
         assertTrue(actionsPossibles.contient("PhG,38,23"));
@@ -414,6 +415,35 @@ public class JoueurTowaTest {
         assertFalse(actionsPossibles.contient("MiI,36,23"));
         // action de magie qui déplace un pion blanc sur une case Terre vide : possible
         assertTrue(actionsPossibles.contient("McC,36,23"));
+    }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 13.
+     */
+    public void testActionsPossibles_niveau13() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU13);
+        // sur le plateau initial : 38 pions noirs et 41 pions blancs
+        int niveau = 13;
+        // 1 - joueur noir
+        char couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // on peut afficher toutes les actions possibles calculées :
+        actionsPossibles.afficher();
+        // Action de pose sur une case qui rend le plateau complet
+        assertTrue(actionsPossibles.contient("PeD,41,41"));
+        // Action de pose sur une case qui complète toutes les colonnes mais pas les lignes
+        assertTrue(actionsPossibles.contient("PiD,39,41"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // action de pose sur une case qui ne rend pas le plateau complet
+        assertTrue(actionsPossibles.contient("PeD,38,42"));
     }
 
     @Test
@@ -672,4 +702,39 @@ public class JoueurTowaTest {
             + "p|   |   |   |   |   |   |B1 |   |   |   |   |   |   |   |   |   |\n"
             + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+";
 
+    final String PLATEAU_NIVEAU13
+            = "   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P \n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "a|   |B4 |   |   |   |N4 |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "b|N1 |   |   |   |   |   |   |B1 |   |B3 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "c|   |   |B1 |   |   |   |   |   |   |   |B1 |   |N1 |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "d|   |   |   |   |B1 |   |   |   |B1 |   |   |N2 |B4 |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "e|B1 |   |   |  1|   |   |   |   |   |   |   |   |   |B3 |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "f|   |   |   |   |   |N2 |   |B11|   |   |   |   |   |N1 |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "g|   |   |B2 |   |   |   |   |  2|   |N1 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "h|   |   |   |   |   |B4 |   |  3|  3|   |N1 |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "i|   |N1 |N1 |   |   |   |   |B22|B1 |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "j|   |   |   |   |   |   |N1 |   |N2 |   |   |B1 |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "k|   |   |   |   |N1 |   |   |   |   |N2 |   |   |   |   |B1 |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "l|N1 |N4 |   |   |N3 |   |B1 |   |   |   |   |   |   |   |   |N1 |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "m|   |   |   |   |B1 |   |   |   |   |N1 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "n|   |   |   |B2 |N1 |N1 |   |   |   |N1 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "o|   |N1 |   |   |   |   |   |N1 |   |   |   |   |   |   |   |B4 |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "p|   |   |   |   |   |   |B1 |   |   |   |   |   |   |   |N2 |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+";
 }
