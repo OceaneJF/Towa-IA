@@ -253,13 +253,29 @@ public class JoueurTowa implements IJoueurTowa {
                 pionsAAjouter = 4 - plateau[coord.ligne][coord.colonne].altitude;
             }
         }
+        int[] pionsASuppr = {0, 0};
+        if (niveau >= 14) {
+            if(plateau[coord.ligne][coord.colonne].couleur == Case.CAR_VIDE){
+                // si l'action de révolte des poneys sur une tour de cette couleur est possible sur cette case
+            pionsASuppr = poneysPossible(plateau, coord, couleur, niveau);
+            }
+            
+        }
         int pionsNoirAAjouter = 0;
         int pionsBlancAAjouter = 0;
         if (couleur == Case.CAR_NOIR) {
             pionsNoirAAjouter = pionsAAjouter;
+            if (pionsASuppr[0] != 0) {
+                pionsNoirAAjouter -= (pionsASuppr[0] + pionsAAjouter);
+                pionsBlancAAjouter -= pionsASuppr[1];
+            }
         }
         if (couleur == Case.CAR_BLANC) {
             pionsBlancAAjouter = pionsAAjouter;
+            if (pionsASuppr[1] != 0) {
+                pionsNoirAAjouter -= pionsASuppr[0];
+                pionsBlancAAjouter -= (pionsASuppr[1] + pionsAAjouter);
+            }
         }
         String action = "P" + coord.carLigne() + coord.carColonne() + ","
                 + (nbPions.nbPionsNoirs + pionsNoirAAjouter) + ","
@@ -387,9 +403,6 @@ public class JoueurTowa implements IJoueurTowa {
      * @param actions l'ensemble des actions possibles (en construction)
      * @param nbPions le nombre de pions par couleur sur le plateau avant de
      * jouer l'action
-     * @param couleur la couleur de la tour à fusionner (le joueur actif)
-     * @param plateau le plateau de jeu
-     * @param niveau le niveau du jeu
      */
     void ajoutActionMagie(Coordonnees coord, ActionsPossibles actions,
             NbPions nbPions) {
@@ -442,7 +455,7 @@ public class JoueurTowa implements IJoueurTowa {
         while (j < plateau.length && plateauCouvert) {
             noirDansLigne = false;
             blancDansLigne = false;
-            i =0;
+            i = 0;
             while (i < plateau.length && (!noirDansLigne || !blancDansLigne)) {
                 if (plateau[i][j].couleur == Case.CAR_NOIR) {
                     noirDansLigne = true;
@@ -464,5 +477,245 @@ public class JoueurTowa implements IJoueurTowa {
             j++;
         }
         return plateauCouvert;
+    }
+
+    /**
+     * Cette fonction retourne le nombre de pions noir à enlever et le nombre de
+     * pions blancs à enlever
+     *
+     * @param plateau le plateau de jeu
+     * @param coord les coordonnées du pion à vérifier
+     * @param couleur la couleur du joueur
+     * @param niveau le niveau de jeu
+     * @return un tableau de deux entiers : nombre de pions blanc et nombre de
+     * pions noir
+     */
+    static int[] poneysPossible(Case[][] plateau, Coordonnees coord, char couleur, int niveau) {
+        Coordonnees[] coordASupprimer = new Coordonnees[Coordonnees.NB_LIGNES * 2];
+        int nbCoordDansTab = 0;
+        // Un tableau de deux coordonnées : les pions qui va falloir enlever
+        Coordonnees[] coordTrouvees;
+        boolean pionPresent;
+        int nbCoordTemp;
+        Coordonnees coordLigne = new Coordonnees(coord.ligne, coord.colonne);
+        for (Direction d : Direction.cardinalesLigne()) {
+            pionPresent = false;
+            nbCoordTemp = nbCoordDansTab;
+            coordLigne.ligne = PionsAdverses.positionSuivante(coord, d).ligne;
+            coordLigne.colonne = PionsAdverses.positionSuivante(coord, d).colonne;
+            // Tant que je ne croise pas de pions sur le plateau
+            while (PionsAdverses.estDansPlateau(coordLigne, Coordonnees.NB_LIGNES) && !pionPresent) {
+                if (plateau[coordLigne.ligne][coordLigne.colonne].couleur != Case.CAR_VIDE) {
+                    pionPresent = true;
+                } else {
+                    coordLigne.ligne = PionsAdverses.positionSuivante(coordLigne, d).ligne;
+                    coordLigne.colonne = PionsAdverses.positionSuivante(coordLigne, d).colonne;
+                }
+            }
+            if (pionPresent) {
+                // Si on a trouvé un signal entre deux pions de même couleur
+                if (plateau[coordLigne.ligne][coordLigne.colonne].couleur == couleur) {
+                    Coordonnees coordDebut = new Coordonnees(coord.ligne, coord.colonne);
+                    // On parcours les cases entre les deux émetteurs de signaux
+                    for (int j = 0; j < valAbsolue(coord.colonne - coordLigne.colonne)-1; j++) {
+                        coordDebut.colonne = PionsAdverses.positionSuivante(coordDebut, d).colonne;
+                        // On regarde toutes les colonnes entre les deux pions.
+                        coordTrouvees = signalTransverseLigne(plateau, coordDebut);
+                        // Si on a trouvé un croisement de signaux alors on mémorise les coordonnées trouvées dans un tableau avec tous les pions qui emmetent un signal.
+                        if (coordTrouvees[0] != null) {
+                            if (nbCoordDansTab == nbCoordTemp) {
+                                coordASupprimer[nbCoordDansTab] =  new Coordonnees(coordLigne.ligne, coordLigne.colonne);
+                                nbCoordDansTab += 1;
+                            }
+                            coordASupprimer[nbCoordDansTab] = new Coordonnees(coordTrouvees[0].ligne, coordTrouvees[0].colonne);
+                            coordASupprimer[nbCoordDansTab + 1] = new Coordonnees(coordTrouvees[1].ligne, coordTrouvees[1].colonne);
+                            nbCoordDansTab += 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        nbCoordTemp = nbCoordDansTab;
+        Coordonnees coordColonne = new Coordonnees(coord.ligne, coord.colonne);
+        for (Direction d : Direction.cardinalesColonne()) {
+            pionPresent = false;
+            coordColonne.ligne = PionsAdverses.positionSuivante(coord, d).ligne;
+            coordColonne.colonne = PionsAdverses.positionSuivante(coord, d).colonne;
+            // Tant que je ne croise pas de pions sur le plateau
+            while (PionsAdverses.estDansPlateau(coordColonne, Coordonnees.NB_COLONNES) && !pionPresent) {
+                if (plateau[coordColonne.ligne][coordColonne.colonne].couleur != Case.CAR_VIDE) {
+                    pionPresent = true;
+                } else {
+                    coordColonne.ligne = PionsAdverses.positionSuivante(coordColonne, d).ligne;
+                    coordColonne.colonne = PionsAdverses.positionSuivante(coordColonne, d).colonne;
+                }
+            }
+            if (pionPresent) {
+                // Si on a trouvé un signal entre deux pions de même couleur
+                if (plateau[coordColonne.ligne][coordColonne.colonne].couleur == couleur) {
+                    Coordonnees coordDebut = new Coordonnees(coord.ligne, coord.colonne);
+                    // On parcours les cases entre les deux émetteurs de signaux
+                    for (int j = 0; j < valAbsolue(coord.ligne - coordColonne.ligne)-1; j++) {
+                        coordDebut.ligne = PionsAdverses.positionSuivante(coordDebut, d).ligne;
+                        // On regarde toutes les lignes entre les deux pions.
+                        coordTrouvees = signalTransverseColonne(plateau, coordDebut);
+                        // Si on a trouvé un croisement de signaux alors on mémorise les coordonnées trouvées dans un tableau avec tous les pions qui emmetent un signal.
+                        if (coordTrouvees[0] != null) {
+                            if (nbCoordDansTab == nbCoordTemp) {
+                                coordASupprimer[nbCoordDansTab] =  new Coordonnees(coordColonne.ligne, coordColonne.colonne);
+                                nbCoordDansTab += 1;
+                            }
+                            coordASupprimer[nbCoordDansTab] = new Coordonnees(coordTrouvees[0].ligne, coordTrouvees[0].colonne);
+                            coordASupprimer[nbCoordDansTab + 1] = new Coordonnees(coordTrouvees[1].ligne, coordTrouvees[1].colonne);
+                            nbCoordDansTab += 2;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        int[] tabPionsASupprimer = new int[2];
+        int nbPionsNoirASupprimer = 0;
+        int nbPionsBlancsASupprimer = 0;
+        for (int i = 0; i < nbCoordDansTab; i++) {
+            // Si la couleur du pion est noir alors on supprime ça hauteur
+            if (plateau[coordASupprimer[i].ligne][coordASupprimer[i].colonne].couleur == Case.CAR_NOIR) {
+                nbPionsNoirASupprimer += plateau[coordASupprimer[i].ligne][coordASupprimer[i].colonne].hauteur;
+            } // Pareil avec la couleur blanche
+            else if (plateau[coordASupprimer[i].ligne][coordASupprimer[i].colonne].couleur == Case.CAR_BLANC) {
+                nbPionsBlancsASupprimer += plateau[coordASupprimer[i].ligne][coordASupprimer[i].colonne].hauteur;
+            }
+        }
+        // On retourne le nombre de pions noir et blanc à supprimer
+        tabPionsASupprimer[0] = nbPionsNoirASupprimer;
+        tabPionsASupprimer[1] = nbPionsBlancsASupprimer;
+        return tabPionsASupprimer;
+    }
+
+    /**
+     * Cette fonction rentourne un tableau de deux coordonnées si il y a un
+     * croisement de signal et un tableau de deux cases vides sinon
+     *
+     * @param plateau le plateau de jeu
+     * @param coordAVerifier les coordonnées de la case à vérifier
+     * @return un tableau de deux coordonnées cui correspondent aux pions à
+     * enlever
+     */
+    static Coordonnees[] signalTransverseLigne(Case[][] plateau, Coordonnees coordAVerifier) {
+        Coordonnees[] coordTrouvees = new Coordonnees[2];
+        boolean pionPresent;
+        Coordonnees coordTemp1 = new Coordonnees(-1, -1);
+        Coordonnees coordTemp2 = new Coordonnees(-1, -1);
+        Coordonnees coordColonne = new Coordonnees(coordAVerifier.ligne, coordAVerifier.colonne);
+        for (Direction d : Direction.cardinalesColonne()) {
+            pionPresent = false;
+            coordColonne.ligne = PionsAdverses.positionSuivante(coordColonne, d).ligne;
+            while (PionsAdverses.estDansPlateau(coordColonne, Coordonnees.NB_COLONNES) && !pionPresent) {
+                // Si il y a un pion dans la colonne et dans la direction
+                if (plateau[coordColonne.ligne][coordColonne.colonne].couleur != Case.CAR_VIDE) {
+                    pionPresent = true;
+                    if (d == Direction.NORD) {
+                        coordTemp1.ligne = coordColonne.ligne;
+                        coordTemp1.colonne = coordColonne.colonne;
+                    }
+                    else{
+                        coordTemp2.ligne = coordColonne.ligne;
+                        coordTemp2.colonne = coordColonne.colonne;
+                    }
+                } else {
+                    coordColonne.ligne = PionsAdverses.positionSuivante(coordColonne, d).ligne;
+                }
+            }
+            // Si on a trouvé deux pions
+            if (coordTemp2.ligne != -1 && coordTemp1.ligne != -1 && pionPresent) {
+                // Si ces deux pions sont de la même couleur
+                if (plateau[coordTemp1.ligne][coordTemp1.colonne].couleur == plateau[coordTemp2.ligne][coordTemp2.colonne].couleur) {
+                    coordTrouvees[0] = new Coordonnees(coordTemp1.ligne, coordTemp1.colonne);
+                    coordTrouvees[1] = new Coordonnees(coordTemp2.ligne, coordTemp2.colonne);
+                }
+            }
+        }
+        return coordTrouvees;
+    }
+
+    /**
+     * Cette fonction rentourne un tableau de deux coordonnées si il y a un
+     * croisement de signal et un tableau de deux cases vides sinon
+     *
+     * @param plateau le plateau de jeu
+     * @param coordAVerifier les coordonnées de la case à vérifier
+     * @return un tableau de deux coordonnées cui correspondent aux pions à
+     * enlever
+     */
+    static Coordonnees[] signalTransverseColonne(Case[][] plateau, Coordonnees coordAVerifier) {
+        Coordonnees[] coordTrouvees = new Coordonnees[2];
+        boolean pionPresent;
+        Coordonnees coordTemp1 = new Coordonnees(-1, -1);
+        Coordonnees coordTemp2 = new Coordonnees(-1, -1);
+        Coordonnees coordLigne = new Coordonnees(coordAVerifier.ligne, coordAVerifier.colonne);
+        for (Direction d : Direction.cardinalesLigne()) {
+            pionPresent = false;
+            coordLigne.colonne = PionsAdverses.positionSuivante(coordLigne, d).colonne;
+            while (PionsAdverses.estDansPlateau(coordLigne, Coordonnees.NB_LIGNES) && !pionPresent) {
+                // Si il y a un pion dans la ligne et dans la direction
+                if (plateau[coordLigne.ligne][coordLigne.colonne].couleur != Case.CAR_VIDE) {
+                    pionPresent = true;
+                    if (d == Direction.OUEST) {
+                        coordTemp1.ligne = coordLigne.ligne;
+                        coordTemp1.colonne = coordLigne.colonne;
+                    }
+                    else{
+                        coordTemp2.ligne = coordLigne.ligne;
+                        coordTemp2.colonne = coordLigne.colonne;
+                    }
+                } else {
+                    coordLigne.colonne = PionsAdverses.positionSuivante(coordLigne, d).colonne;
+                }
+            }
+            // Si on a trouvé deux pions
+            if (coordTemp1.ligne != -1 && coordTemp2.ligne != -1 && pionPresent) {
+                // Si ces deux pions sont de la même couleur
+                if (plateau[coordTemp1.ligne][coordTemp1.colonne].couleur == plateau[coordLigne.ligne][coordLigne.colonne].couleur) {
+                    coordTrouvees[0] = new Coordonnees(coordTemp1.ligne, coordTemp1.colonne);
+                    coordTrouvees[1] = new Coordonnees(coordTemp2.ligne, coordTemp2.colonne);
+                }
+            }
+        }
+        return coordTrouvees;
+    }
+
+    /**
+     * Cette fonction permet de retourner les coordonnées tels quels car la
+     * magie de fait que changer le pion de place et ne modifie pas son nombre
+     * de pions.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à fusionner
+     * @param actions l'ensemble des actions possibles (en construction)
+     * @param nbPions le nombre de pions par couleur sur le plateau avant de
+     * jouer l'action
+     * @param pionsASuppr le nombre de pions blanc et de pions noir a supprimer
+     */
+    void ajoutActionPoneys(Coordonnees coord, ActionsPossibles actions,
+            NbPions nbPions, int[] pionsASuppr) {
+        String action = "M" + coord.carLigne() + coord.carColonne() + ","
+                + (nbPions.nbPionsNoirs - pionsASuppr[0]) + ","
+                + (nbPions.nbPionsBlancs - pionsASuppr[1]);
+        actions.ajouterAction(action);
+    }
+
+    /**
+     * Cette fonction renvoie la valeur absolue d'un nombre passé en paramètre
+     *
+     * @param nb le nombre à tester
+     * @return la valeur absolue
+     */
+    static int valAbsolue(int nb) {
+        if (nb > 0) {
+            return nb;
+        } else {
+            return -nb;
+        }
     }
 }

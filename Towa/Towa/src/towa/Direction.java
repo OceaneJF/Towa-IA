@@ -39,6 +39,26 @@ enum Direction {
         Direction[] directions = {NORD_EST,NORD_OUEST,SUD_EST,SUD_OUEST};
         return directions;
     }
+    
+    /**
+     * Renvoie les deux directions cardinales qui correspondent à la ligne.
+     *
+     * @return tableau contenant les deux directions cardinales OUEST et EST.
+     */
+    static Direction[] cardinalesLigne() {
+        Direction[] directions = {OUEST,EST};
+        return directions;
+    }
+    
+    /**
+     * Renvoie les deux directions cardinales qui correspondent à la colonne.
+     *
+     * @return tableau contenant les deux directions cardinales NORD et SUD.
+     */
+    static Direction[] cardinalesColonne() {
+        Direction[] directions = {NORD, SUD};
+        return directions;
+    }
 
     /**
      * Renvoie le nombre de cases parcourues horizontalement lorsqu'on suit

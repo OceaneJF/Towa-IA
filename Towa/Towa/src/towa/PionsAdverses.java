@@ -331,5 +331,7 @@ public class PionsAdverses {
         }
         return nbAmisDansLigneColonne;
     }
+    
+    
 
 }

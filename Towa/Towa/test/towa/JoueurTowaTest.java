@@ -28,7 +28,8 @@ public class JoueurTowaTest {
         // testActionsPossibles_niveau10();
         // testActionsPossibles_niveau11();
         // testActionsPossibles_niveau12();
-        testActionsPossibles_niveau13();
+        // testActionsPossibles_niveau13();
+        testActionsPossibles_niveau14_1();
     }
 
     /**
@@ -416,7 +417,7 @@ public class JoueurTowaTest {
         // action de magie qui déplace un pion blanc sur une case Terre vide : possible
         assertTrue(actionsPossibles.contient("McC,36,23"));
     }
-    
+
     /**
      * Test de la fonction actionsPossibles, au niveau 13.
      */
@@ -444,6 +445,60 @@ public class JoueurTowaTest {
         actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
         // action de pose sur une case qui ne rend pas le plateau complet
         assertTrue(actionsPossibles.contient("PeD,38,42"));
+    }
+
+    /**
+     * Test de la fonction actionsPossibles, au niveau 14.
+     */
+    public void testActionsPossibles_niveau14() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU14);
+        // sur le plateau initial : 36 pions noirs et 38 pions blancs
+        int niveau = 14;
+        // 1 - joueur noir
+        char couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // on peut afficher toutes les actions possibles calculées :
+        actionsPossibles.afficher();
+        assertTrue(actionsPossibles.contient("PaH,28,32"));
+        assertTrue(actionsPossibles.contient("PaA,36,39"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        assertTrue(actionsPossibles.contient("PkJ,35,29"));
+        assertTrue(actionsPossibles.contient("PaA,38,38"));
+    }
+    
+    /**
+     * Test de la fonction actionsPossibles, au niveau 14.
+     */
+    public void testActionsPossibles_niveau14_1() {
+        JoueurTowa joueur = new JoueurTowa();
+        Case[][] plateau = Utils.plateauDepuisTexte(PLATEAU_NIVEAU14_1);
+        // sur le plateau initial : 5 pions noirs et 10 pions blancs
+        int niveau = 14;
+        // 1 - joueur noir
+        char couleur = Case.CAR_BLANC;
+        // on lance actionsPossibles
+        String[] actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        ActionsPossibles actionsPossibles
+                = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        // on peut afficher toutes les actions possibles calculées :
+        actionsPossibles.afficher();
+        assertTrue(actionsPossibles.contient("PjM,5,11"));
+        assertTrue(actionsPossibles.contient("PjE,5,12"));
+        // 2 - joueur blanc
+        couleur = Case.CAR_NOIR;
+        // on lance actionsPossibles
+        actionsPossiblesDepuisPlateau = joueur.actionsPossibles(plateau, couleur, niveau);
+        actionsPossibles = new ActionsPossibles(actionsPossiblesDepuisPlateau);
+        //assertTrue(actionsPossibles.contient("PkJ,35,29"));
+        //assertTrue(actionsPossibles.contient("PaA,38,38"));
     }
 
     @Test
@@ -736,5 +791,77 @@ public class JoueurTowaTest {
             + "o|   |N1 |   |   |   |   |   |N1 |   |   |   |   |   |   |   |B4 |\n"
             + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
             + "p|   |   |   |   |   |   |B1 |   |   |   |   |   |   |   |N2 |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+";
+
+    final String PLATEAU_NIVEAU14
+            = "  A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P \n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "a|   |   |   |   |   |   |   |   |   |   |   |   |   |B4 |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "b|   |B13|   |   |   |   |   |   |   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "c|B11|   |   |N11|   |   |   |   |   |N2 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "d|B2 |   |N12|B31|   |   |   |   |   |   |   |   |   |B1 |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "e|   |   |   |  2|   |   |   |   |N3 |   |N4 |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "f|   |   |   |   |N4 |   |   |   |   |B1 |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+E--+---+---+---+---+---+---+---+---+\n"
+            + "g|   |   |   |   |N12|   |  2|   |   |   |   |   |   |   |   |N4 |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "h|   |   |   |   |   |   |   |   |N12|   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "i|   |   |   |   |   |   |   |B21|   |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "j|   |   |   |   |   |   |   |   |B2 |   |   |   |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "k|B4 |   |   |B11|   |N12|   |   |   |   |   |B1 |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "l|   |   |   |   |   |   |   |   |B4 |   |N3 |   |N1 |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "m|   |   |   |   |   |   |   |B1 |   |   |   |   |   |N11|   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "n|   |   |   |   |   |   |   |N21|   |   |B4 |   |   |   |B21|   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "o|   |   |   |   |   |N4 |   |   |N1 |   |   |   |   |N23|   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "p|   |   |   |   |   |   |   |   |   |   |   |B4 |   |   |   |   |\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+";
+
+    final String PLATEAU_NIVEAU14_1
+            = "  A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P \n"
+            + " +---+---+---+---+E--+E--+---+---+---+---+---+---+---+---+---+---+\n"
+            + "a|  1|  1|  1|  1|   |   |  1|  1|  2|  3|  3|  4|  4|  4|  4|  4|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "b|  2|  2|  1|  1|  1|  1|  1|  1|  2|  3|  3|  4|  4|  4|  4|  4|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "c|  1|  2|  2|  2|  2|  2|  2|  2|  2|  2|  3|  4|  4|  4|  4|  4|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "d|  1|  1|  1|  2|  2|  2|  2|  2|  2|B12|  2|  3|  4|  3|  3|  3|\n"
+            + " +E--+E--+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "e|   |   |N11|  1|  2|  2|  2|  2|  2|  2|  2|  3|  3|  3|  3|  2|\n"
+            + " +E--+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "f|   |  1|  1|  1|  1|  1|  1|  1|  1|  1|  2|  2|  3|  3|  3|B12|\n"
+            + " +---+---+---+---+---+---+---+E--+---+---+---+---+---+---+---+---+\n"
+            + "g|  1|  1|  2|  1|  1|  1|  1|   |  1|  1|B11|  2|B12|  2|  3|  2|\n"
+            + " +---+---+---+---+---+---+E--+E--+---+---+---+---+---+---+---+---+\n"
+            + "h|  2|B12|  2|  2|  2|  1|   |   |  1|  1|  1|  1|  1|  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+E--+---+---+E--+E--+---+---+---+---+\n"
+            + "i|  3|  2|  2|  2|  2|  1|  1|   |  1|  1|   |   |  1|  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+E--+E--+E--+---+---+---+---+\n"
+            + "j|  3|  3|  3|  3|  2|  2|  1|  1|  1|   |   |   |  1|  2|  2|B12|\n"
+            + " +---+---+---+---+---+---+---+---+E--+E--+E--+E--+---+---+---+---+\n"
+            + "k|  3|  3|  3|  3|N12|  2|  2|  1|   |   |   |   |  1|  2|B12|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+E--+E--+E--+E--+---+---+---+\n"
+            + "l|N13|  3|  3|  2|  2|  2|  2|  1|  1|   |   |   |   |  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+E--+E--+E--+E--+---+---+---+\n"
+            + "m|  3|  3|  3|  2|  2|  2|  2|  2|  1|   |   |   |   |  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+E--+E--+---+---+---+---+\n"
+            + "n|  3|  3|  3|  2|  2|  2|  2|  2|  1|  1|   |   |  1|  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+E--+E--+---+---+---+---+\n"
+            + "o|B12|  2|  2|  2|N12|  2|  2|  1|  1|  1|   |   |  1|  1|  2|  2|\n"
+            + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+\n"
+            + "p|B12|  2|  2|  2|N12|  2|  2|  2|  1|  1|  1|  1|  1|  1|B11|  1|\n"
             + " +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+";
 }
