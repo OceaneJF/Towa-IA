@@ -29,6 +29,13 @@ public class IATowa {
     final char couleur;
 
     /**
+     * Le séparateur de chaque actions
+     */
+    final static String SEPARATEUR = ",";
+    
+    final static int HAUTEUR_MAX = 4;
+
+    /**
      * Interface pour le protocole du grand ordonnateur.
      */
     TcpGrandOrdonnateur grandOrdo = null;
@@ -141,8 +148,57 @@ public class IATowa {
         // TODO : ici, on choisit aléatoirement n'importe quelle action possible
         // retournée par votre programme. À vous de faire un meilleur choix...
         //
-        MonTacheron monTacheron = new MonTacheron(couleur);
-        return monTacheron.actionChoisie(plateau, nbToursJeu);
+
+        // on instancie votre implémentation
+        JoueurTowa joueurTowa = new JoueurTowa();
+        // choisir aléatoirement une action possible
+        String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
+                joueurTowa.actionsPossibles(plateau, couleur, 8));
+        String actionJouee = null;
+        if (actionsPossibles.length > 0) {
+
+            actionJouee = meilleurActionDansTab(actionsPossibles);
+        }
+
+        return actionJouee;
+    }
+
+    /**
+     * Cette fonction renvoie l'action qui a la plus grande différence de pions en fonction de la couleur
+     * @param actionsPossibles le tableau de toutes les actions possibles
+     * @return la meilleure action
+     */
+    String meilleurActionDansTab(String[] actionsPossibles) {
+        int nbPionsNoirs;
+        int nbPionsBlancs;
+        int meilleurCombot = 0;
+        for (int i = 0; i < actionsPossibles.length; i++) {
+            nbPionsNoirs = nbPionsNoirs(actionsPossibles[i]);
+            nbPionsBlancs = nbPionsBlancs(actionsPossibles[i]);
+            if (couleur == Case.CAR_NOIR) {
+                if (nbPionsNoirs - nbPionsBlancs > nbPionsNoirs(actionsPossibles[meilleurCombot]) - nbPionsBlancs(actionsPossibles[meilleurCombot])) {
+                    meilleurCombot = i;
+                }
+            }
+            else{
+                if (nbPionsBlancs - nbPionsNoirs > nbPionsBlancs(actionsPossibles[meilleurCombot]) - nbPionsNoirs(actionsPossibles[meilleurCombot])) {
+                    meilleurCombot = i;
+                }
+            }
+        }
+        return actionsPossibles[meilleurCombot];
+    }
+
+    static int nbPionsNoirs(String action) {
+        int indexSeparateur = action.indexOf(SEPARATEUR);
+        int indexDeuxiemeSep = action.indexOf(SEPARATEUR, indexSeparateur + 1);
+        return Integer.parseInt(action.substring(indexSeparateur+1, indexDeuxiemeSep));
+    }
+    
+    static int nbPionsBlancs(String action) {
+        int indexSeparateur = action.indexOf(SEPARATEUR);
+        int indexDeuxiemeSep = action.indexOf(SEPARATEUR, indexSeparateur + 1);
+        return Integer.parseInt(action.substring(indexDeuxiemeSep+1));
     }
 
     /**
@@ -201,6 +257,8 @@ public class IATowa {
             case 'A':
                 activer(coord, plateau, couleurCourante);
                 break;
+            case 'F':
+                fusionner(coord, plateau, couleurCourante);
             default:
                 System.out.println("Type d'action incorrect : " + action.charAt(0));
         }
@@ -246,6 +304,33 @@ public class IATowa {
         for (Case tourADetruire : aDetruire) {
             detruireTour(tourADetruire);
         }
+    }
+
+    /**
+     * Fusionner une tour avec toutes ses voisines.
+     *
+     * @param coord coordonnées de la case où se situe la tour à fusionner
+     * @param plateau le plateau de jeu
+     * @param couleurCourante couleur du joueur courant
+     */
+    static void fusionner(Coordonnees coord, Case[][] plateau, char couleurCourante) {
+        Case laCase = plateau[coord.ligne][coord.colonne];
+        List<Case> aDetruire
+                = porteeActivation(coord)
+                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
+                        .filter(c -> c.tourPresente()) // une tour
+                        .filter(c -> c.couleur == couleurCourante) // amie
+                        .collect(Collectors.toList());
+        int pionsRecuperes= 0;
+        for (Case tourADetruire : aDetruire) {
+            pionsRecuperes += tourADetruire.hauteur;
+            detruireTour(tourADetruire);
+        }
+        int nouvelleHauteur = laCase.hauteur + pionsRecuperes;
+        if(nouvelleHauteur >HAUTEUR_MAX){
+            nouvelleHauteur = HAUTEUR_MAX;
+        }
+        laCase.hauteur = nouvelleHauteur;
     }
 
     /**
