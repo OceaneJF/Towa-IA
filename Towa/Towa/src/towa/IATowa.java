@@ -1,12 +1,14 @@
 package towa;
 
 import java.io.IOException;
+import static java.lang.Integer.parseInt;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 
 /**
  * Votre IA pour le jeu Towa.
@@ -38,11 +40,12 @@ public class IATowa {
      */
     static final int NB_TOURS_JEU_MAX = 40;
 
+
     /**
      * Constructeur.
      *
-     * @param hote Hôte.
-     * @param port Port.
+     * @param hote       Hôte.
+     * @param port       Port.
      * @param uneCouleur couleur du joueur
      */
     public IATowa(String hote, int port, char uneCouleur) {
@@ -110,7 +113,7 @@ public class IATowa {
      * Fonction exécutée lorsque c'est à notre tour de jouer. Cette fonction
      * envoie donc l'action choisie au serveur.
      *
-     * @param plateau le plateau de jeu
+     * @param plateau    le plateau de jeu
      * @param nbToursJeu numéro du tour de jeu
      * @throws IOException exception sur les entrées / sorties
      */
@@ -132,24 +135,62 @@ public class IATowa {
     /**
      * L'action choisie par notre IA.
      *
-     * @param plateau le plateau de jeu
+     * @param plateau    le plateau de jeu
      * @param nbToursJeu numéro du tour de jeu
      * @return l'action choisie sous forme de chaîne
      */
     public String actionChoisie(Case[][] plateau, int nbToursJeu) {
-        //
-        // TODO : ici, on choisit aléatoirement n'importe quelle action possible
-        // retournée par votre programme. À vous de faire un meilleur choix...
-        //
-        MonTacheron monTacheron = new MonTacheron(couleur);
-        return monTacheron.actionChoisie(plateau, nbToursJeu);
+          // on instancie votre implémentation
+        JoueurTowa joueurTowa = new JoueurTowa();
+        // choisir aléatoirement une action possible
+        String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
+                joueurTowa.actionsPossibles(plateau, couleur, 5));
+        String actionJouee = null;
+        if (actionsPossibles.length > 0) {
+            actionJouee = ActionsPossibles.enleverVitalites(
+                    this.meilleurAction(actionsPossibles));
+        }
+
+        return actionJouee;
     }
+
+
+     
+     String meilleurAction(String[] actionPossible){
+         int max=this.pionsGagnee(actionPossible[0]);
+         String meillAction="";
+         for (int i = 0; i <actionPossible.length; i++) {
+             if (max<= this.pionsGagnee(actionPossible[i])) {
+                 max=this.pionsGagnee(actionPossible[i]);
+                 meillAction=actionPossible[i];
+             }
+             
+         }
+         return meillAction;
+     }
+     
+     
+     int pionsGagnee(String action ){
+        
+         int nbJoueurN=parseInt(action.substring(action.indexOf(",", 0)+1,action.indexOf(",", 5)));
+         int nbJoueurB=parseInt(action.substring((action.indexOf(",", 4)+1),action.length()));
+         int nbPions=0;
+         if (this.couleur == Case.CAR_NOIR) {
+             nbPions=nbJoueurN-nbJoueurB;
+         }
+         if (this.couleur == Case.CAR_BLANC) {
+              nbPions=nbJoueurB-nbJoueurN;
+         }
+         return nbPions;
+     }
+
+    /**
 
     /**
      * L'adversaire joue : on récupère son action, met à jour le plateau, et
      * signale toute disqualification.
      *
-     * @param plateau le plateau de jeu
+     * @param plateau           le plateau de jeu
      * @param couleurAdversaire couleur de l'adversaire
      * @return l'action choisie sous forme de chaîne
      */
@@ -183,12 +224,12 @@ public class IATowa {
     /**
      * Mettre à jour le plateau suite à une action, supposée valide.
      *
-     * @param plateau le plateau
-     * @param action l'action à appliquer
+     * @param plateau         le plateau
+     * @param action          l'action à appliquer
      * @param couleurCourante couleur du joueur courant
      */
     static void mettreAJour(Case[][] plateau, String action,
-            char couleurCourante) {
+                            char couleurCourante) {
         // vérification des arguments
         if (plateau == null || action == null || action.length() != 3) {
             return;
@@ -201,6 +242,9 @@ public class IATowa {
             case 'A':
                 activer(coord, plateau, couleurCourante);
                 break;
+            case 'F':
+                fusionner(coord, plateau, couleurCourante);
+                break;
             default:
                 System.out.println("Type d'action incorrect : " + action.charAt(0));
         }
@@ -209,8 +253,8 @@ public class IATowa {
     /**
      * Poser un pion sur une case donnée (vide ou pas).
      *
-     * @param coord coordonnées de la case
-     * @param plateau le plateau de jeu
+     * @param coord           coordonnées de la case
+     * @param plateau         le plateau de jeu
      * @param couleurCourante couleur du joueur courant
      */
     static void poser(Coordonnees coord, Case[][] plateau, char couleurCourante) {
@@ -230,22 +274,59 @@ public class IATowa {
     /**
      * Activer une tour.
      *
-     * @param coord coordonnées de la case où se situe la tour à activer
-     * @param plateau le plateau de jeu
+     * @param coord           coordonnées de la case où se situe la tour à activer
+     * @param plateau         le plateau de jeu
      * @param couleurCourante couleur du joueur courant
      */
     static void activer(Coordonnees coord, Case[][] plateau, char couleurCourante) {
         final int hauteurTourJoueur = plateau[coord.ligne][coord.colonne].hauteur;
         List<Case> aDetruire
                 = porteeActivation(coord)
-                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
-                        .filter(c -> c.tourPresente()) // une tour
-                        .filter(c -> c.couleur != couleurCourante) // ennemie
-                        .filter(c -> c.hauteur < hauteurTourJoueur) // plus basse
-                        .collect(Collectors.toList());
+                .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
+                .filter(c -> c.tourPresente()) // une tour
+                .filter(c -> c.couleur != couleurCourante) // ennemie
+                .filter(c -> c.hauteur < hauteurTourJoueur) // plus basse
+                .collect(Collectors.toList());
         for (Case tourADetruire : aDetruire) {
             detruireTour(tourADetruire);
         }
+    }
+
+    /**
+     * Activer une tour.
+     *
+     * @param coord           coordonnées de la case où se situe la tour à activer
+     * @param plateau         le plateau de jeu
+     * @param couleurCourante couleur du joueur courant
+     */
+    static void fusionner(Coordonnees coord, Case[][] plateau, char couleurCourante) {
+        Case tourJouer = plateau[coord.ligne][coord.colonne];
+        List<Case> aFusionner
+                = porteeActivation(coord)
+                .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
+                .filter(c -> c.tourPresente()) // une tour
+                .filter(c -> c.couleur == couleurCourante) // ami
+                .collect(Collectors.toList());
+        for (Case tourAFusionner : aFusionner) {
+            fusionnerTour(tourAFusionner, tourJouer);
+        }
+    }
+
+    /**
+     * Détruire une tour.
+     *
+     * @param laCase la case dont on doit détruire la tour
+     */
+    static void fusionnerTour(Case laCase, Case joueur) {
+        int hauteurAtteint = joueur.hauteur + laCase.hauteur;
+
+        if (hauteurAtteint > 4) {
+            joueur.hauteur = 4;
+        } else {
+            joueur.hauteur += laCase.hauteur;
+        }
+        laCase.hauteur = 0;
+        laCase.couleur = Case.CAR_VIDE;
     }
 
     /**
@@ -261,8 +342,8 @@ public class IATowa {
     /**
      * Indique si une case possède une case voisine avec une tour ennemie.
      *
-     * @param coord la case dont on souhaite analyser les voisines
-     * @param plateau le plateau courant
+     * @param coord           la case dont on souhaite analyser les voisines
+     * @param plateau         le plateau courant
      * @param couleurCourante couleur du joueur courant
      * @return vrai ssi la case possède une voisine avec une tour ennemie
      */
@@ -282,8 +363,8 @@ public class IATowa {
     static Stream<Coordonnees> voisines(final Coordonnees coord) {
         return IntStream.rangeClosed(-1, 1).boxed()
                 .flatMap(l -> IntStream.rangeClosed(-1, 1)
-                .filter(c -> !(l == 0 && c == 0))
-                .mapToObj(c -> new Coordonnees(coord.ligne + l, coord.colonne + c)))
+                        .filter(c -> !(l == 0 && c == 0))
+                        .mapToObj(c -> new Coordonnees(coord.ligne + l, coord.colonne + c)))
                 .filter(v -> 0 <= v.ligne && v.ligne < Coordonnees.NB_LIGNES)
                 .filter(v -> 0 <= v.colonne && v.colonne < Coordonnees.NB_COLONNES);
     }
