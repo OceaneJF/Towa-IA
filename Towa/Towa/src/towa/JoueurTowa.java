@@ -78,7 +78,7 @@ public class JoueurTowa implements IJoueurTowa {
             }
         }
         if (niveau >= 2) {
-            if ((plateau[coord.ligne][coord.colonne].couleur != couleur) && (plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE)) {
+            if (plateau[coord.ligne][coord.colonne].couleur != couleur && plateau[coord.ligne][coord.colonne].couleur != Case.CAR_VIDE) {
                 estPossible = false;
             }
         }

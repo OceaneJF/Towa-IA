@@ -5,10 +5,12 @@ import static java.lang.Integer.parseInt;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static towa.PionsAdverses.estDansPlateau;
+import static towa.PionsAdverses.positionSuivante;
 import static towa.PionsAdverses.suivante;
 
 /**
@@ -30,6 +32,13 @@ public class IATowa {
      * Couleur de votre joueur (IA) : 'N'oir ou 'B'lanc.
      */
     final char couleur;
+
+    /**
+     * Le séparateur de chaque actions
+     */
+    final static String SEPARATEUR = ",";
+
+    final static int HAUTEUR_MAX = 4;
 
     /**
      * Interface pour le protocole du grand ordonnateur.
@@ -154,26 +163,38 @@ public class IATowa {
     }
 
     String meilleurAction(String[] actionPossible, Case[][] plateau) {
-        int max = this.pionsGagnee(actionPossible[0]);
+        int max = evaluation(actionPossible[0], plateau);
         String meillAction = "";
-
+        int indiceM=0;
         for (int i = 0; i < actionPossible.length; i++) {
             String action = actionPossible[i];
             if (max <= evaluation(action, plateau)) {
                 max = evaluation(action, plateau);
                 meillAction = action;
+                indiceM=i;
             }
-
         }
 
+        char actionType = meillAction.charAt(0);
+        Random r = new Random();
+        if (actionType == 'A') {
+            Coordonnees coord = Coordonnees.depuisCars(meillAction.charAt(1),meillAction.charAt(2) );
+            if (!checkCasesAdjacentesEnemi(coord, couleur, plateau)) {
+                meillAction="P"+meillAction.substring(1);
+                if (!estDansActions(actionPossible,meillAction)) {
+                    actionPossible[indiceM] =null;
+                    String[] actions=ActionsPossibles.nettoyerTableau(actionPossible);
+                    meillAction=meilleurAction(actions, plateau);
+                }
+            }
+        }
+
+//        System.out.println(plateauDepuisTexte(plateau));
         return meillAction;
     }
 
     int evaluation(String action, Case[][] plateau) {
-        int score = 0;
-        score += pionsGagnee(action);
-        score += pionsTuable(action, plateau);
-        return score;
+        return pionsGagnee(action) + pionsTuable(action, plateau);
     }
 
     int pionsGagnee(String action) {
@@ -216,8 +237,52 @@ public class IATowa {
         return nbAdversairesAdjacents;
     }
 
+    static boolean checkCasesAdjacentesEnemi(Coordonnees coord, char couleur, Case[][] plateau) {
+        boolean estAssesGrand = false;
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        for (Direction d : Direction.cardinales2()) {
+            Coordonnees pionSuivant = suivante(coord, d);
+            // Si il est dans le plateau
+            if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
+                // Si c'est un adversaire
+                if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != couleur && plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != Case.CAR_VIDE) {
+                    if (hauteurTour > plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur) {
+                        estAssesGrand = true;
+                    }
+                }
+            }
+        }
+        return estAssesGrand;
+    }
+    
+    static boolean estDansActions(String[] actions,String laAction){
+        boolean estDansAction=false;
+        for (String action : actions) {
+            if (action.equals(laAction)) {
+                estDansAction=true;
+            }
+        }
+        return estDansAction;
+    }
+
+    public static String plateauDepuisTexte(Case[][] plateau) {
+        String plateauStr = "";
+        String[] alpha = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"};
+        for (int i = 0; i < alpha.length; i++) {
+            plateauStr += "    " + alpha[i] + "";
+        }
+        plateauStr += "\n";
+        for (int lig = 0; lig < Coordonnees.NB_LIGNES; lig++) {
+            plateauStr += alpha[lig] + " |";
+            for (int col = 0; col < Coordonnees.NB_COLONNES; col++) {
+                plateauStr += " " + plateau[lig][col].couleur + plateau[lig][col].hauteur + " |";
+            }
+            plateauStr += "\n";
+        }
+        return plateauStr;
+    }
+
     /**
-     * /**
      * L'adversaire joue : on récupère son action, met à jour le plateau, et
      * signale toute disqualification.
      *
@@ -275,7 +340,6 @@ public class IATowa {
                 break;
             case 'F':
                 fusionner(coord, plateau, couleurCourante);
-                break;
             default:
                 System.out.println("Type d'action incorrect : " + action.charAt(0));
         }
@@ -310,54 +374,52 @@ public class IATowa {
      * @param couleurCourante couleur du joueur courant
      */
     static void activer(Coordonnees coord, Case[][] plateau, char couleurCourante) {
-        final int hauteurTourJoueur = plateau[coord.ligne][coord.colonne].hauteur;
-        List<Case> aDetruire
-                = porteeActivation(coord)
-                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
-                        .filter(c -> c.tourPresente()) // une tour
-                        .filter(c -> c.couleur != couleurCourante) // ennemie
-                        .filter(c -> c.hauteur < hauteurTourJoueur) // plus basse
-                        .collect(Collectors.toList());
-        for (Case tourADetruire : aDetruire) {
+        Case[] enemieLignesColonnes = enemiDansLigneEtColonne(coord, couleurCourante, plateau);
+        for (Case tourADetruire : enemieLignesColonnes) {
             detruireTour(tourADetruire);
         }
+        Case[] enemiAdjacents = casesAdjacentesActivation(coord, couleurCourante, plateau, 8);
+        for (Case tourADetruire : enemiAdjacents) {
+            detruireTour(tourADetruire);
+        }
+//        final int hauteurTourJoueur = plateau[coord.ligne][coord.colonne].hauteur;
+//        List<Case> aDetruire
+//                = porteeActivation(coord)
+//                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
+//                        .filter(c -> c.tourPresente()) // une tour
+//                        .filter(c -> c.couleur != couleurCourante) // ennemie
+//                        .filter(c -> c.hauteur < hauteurTourJoueur) // plus basse
+//                        .collect(Collectors.toList());
+//        for (Case tourADetruire : aDetruire) {
+//            detruireTour(tourADetruire);
+//        }
     }
 
     /**
-     * Activer une tour.
+     * Fusionner une tour avec toutes ses voisines.
      *
-     * @param coord coordonnées de la case où se situe la tour à activer
+     * @param coord coordonnées de la case où se situe la tour à fusionner
      * @param plateau le plateau de jeu
      * @param couleurCourante couleur du joueur courant
      */
     static void fusionner(Coordonnees coord, Case[][] plateau, char couleurCourante) {
-        Case tourJouer = plateau[coord.ligne][coord.colonne];
-        List<Case> aFusionner
-                = porteeActivation(coord)
-                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
-                        .filter(c -> c.tourPresente()) // une tour
-                        .filter(c -> c.couleur == couleurCourante) // ami
-                        .collect(Collectors.toList());
-        for (Case tourAFusionner : aFusionner) {
-            fusionnerTour(tourAFusionner, tourJouer);
+        Case laCase = plateau[coord.ligne][coord.colonne];
+        Case[] amisLignesColonnes = amisDansLigneEtColonne(coord, couleurCourante, plateau, 8);
+        int pionsRecuperes = 0;
+        for (Case tourADetruire : amisLignesColonnes) {
+            pionsRecuperes += tourADetruire.hauteur;
+            detruireTour(tourADetruire);
         }
-    }
-
-    /**
-     * Détruire une tour.
-     *
-     * @param laCase la case dont on doit détruire la tour
-     */
-    static void fusionnerTour(Case laCase, Case joueur) {
-        int hauteurAtteint = joueur.hauteur + laCase.hauteur;
-
-        if (hauteurAtteint > 4) {
-            joueur.hauteur = 4;
-        } else {
-            joueur.hauteur += laCase.hauteur;
+        Case[] amisAdjacents = casesAdjacentesFusion(coord, couleurCourante, plateau, 8);
+        for (Case tourADetruire : amisAdjacents) {
+            pionsRecuperes += tourADetruire.hauteur;
+            detruireTour(tourADetruire);
         }
-        laCase.hauteur = 0;
-        laCase.couleur = Case.CAR_VIDE;
+        int nouvelleHauteur = laCase.hauteur + pionsRecuperes;
+        if (nouvelleHauteur > HAUTEUR_MAX) {
+            nouvelleHauteur = HAUTEUR_MAX;
+        }
+        laCase.hauteur = nouvelleHauteur;
     }
 
     /**
@@ -409,6 +471,158 @@ public class IATowa {
     static Stream<Coordonnees> porteeActivation(final Coordonnees coord) {
         return Stream.concat(voisines(coord),
                 Stream.concat(memeLigne(coord), memeColonne(coord)));
+    }
+
+    /**
+     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * même ligne et la même colonne.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif).
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu.
+     * @return le nombre d'adversaires présents sur la même ligne et sur la même
+     * colonne que le joueur actif.
+     */
+    static Case[] amisDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        Case[] amisDansLigneColonne = new Case[40];
+        int nbAmis = 0;
+        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+        boolean caseVide;
+        for (Direction d : Direction.cardinales1()) {
+            coordS.ligne = positionSuivante(coord, d).ligne;
+            coordS.colonne = positionSuivante(coord, d).colonne;
+            caseVide = true;
+            // On cherche le premier pion dans la direction d.
+            while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
+                // Si on a trouvé un pion
+                if (plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE) {
+                    caseVide = false;
+                    // Si la case est remplie par un pion ami
+                    if (plateau[coordS.ligne][coordS.colonne].couleur == couleur) {
+                        amisDansLigneColonne[nbAmis] = plateau[coordS.ligne][coordS.colonne];
+                        nbAmis++;
+                    }
+                }
+                coordS.ligne = positionSuivante(coordS, d).ligne;
+                coordS.colonne = positionSuivante(coordS, d).colonne;
+            }
+        }
+        Case[] tabFinal = new Case[nbAmis];
+        for (int i = 0; i < nbAmis; i++) {
+            tabFinal[i] = amisDansLigneColonne[i];
+        }
+        return tabFinal;
+    }
+
+    /**
+     * Retourne le nombre d'amis adjacents (en comptant les pions qui forment
+     * des tours.
+     *
+     * @param coord coordonnées de la case considérée
+     * @param couleur la couleur du joueur actif
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     * @return le nombre de pions amis adjacents.
+     */
+    static Case[] casesAdjacentesFusion(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        Case[] amisAdjacents = new Case[8];
+        int nbAmis = 0;
+        for (Direction d : Direction.cardinales2()) {
+            Coordonnees pionSuivant = suivante(coord, d);
+            // Si il est dans le plateau
+            if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
+                // Si c'est un pion ami
+                if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur == couleur) {
+                    amisAdjacents[nbAmis] = plateau[pionSuivant.ligne][pionSuivant.colonne];
+                    nbAmis++;
+                }
+            }
+        }
+        Case[] tabFinal = new Case[nbAmis];
+        for (int i = 0; i < nbAmis; i++) {
+            tabFinal[i] = amisAdjacents[i];
+        }
+        return tabFinal;
+    }
+
+    /**
+     * Retourne le nombre d'amis adjacents (en comptant les pions qui forment
+     * des tours.
+     *
+     * @param coord coordonnées de la case considérée
+     * @param couleur la couleur du joueur actif
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     * @return le nombre de pions amis adjacents.
+     */
+    static Case[] casesAdjacentesActivation(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        Case[] enemiAdjacents = new Case[8];
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int nbAmis = 0;
+        for (Direction d : Direction.cardinales2()) {
+            Coordonnees pionSuivant = suivante(coord, d);
+            // Si il est dans le plateau
+            if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
+                // Si c'est un pion emeni
+                if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != couleur && plateau[pionSuivant.ligne][pionSuivant.colonne].tourPresente()) {
+                    if (hauteurTour > plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur) {
+                        enemiAdjacents[nbAmis] = plateau[pionSuivant.ligne][pionSuivant.colonne];
+                        nbAmis++;
+                    }
+                }
+            }
+        }
+        Case[] tabFinal = new Case[nbAmis];
+        for (int i = 0; i < nbAmis; i++) {
+            tabFinal[i] = enemiAdjacents[i];
+        }
+        return tabFinal;
+    }
+
+    /**
+     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * même ligne et la même colonne.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif).
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu.
+     * @return le nombre d'adversaires présents sur la même ligne et sur la même
+     * colonne que le joueur actif.
+     */
+    static Case[] enemiDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau) {
+        Case[] enemiDansLigneColonne = new Case[40];
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        int nbEnemi = 0;
+        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+        boolean caseVide;
+        for (Direction d : Direction.cardinales1()) {
+            coordS.ligne = positionSuivante(coord, d).ligne;
+            coordS.colonne = positionSuivante(coord, d).colonne;
+            caseVide = true;
+            // On cherche le premier pion dans la direction d.
+            while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
+                // Si on a trouvé un pion
+                if (plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE) {
+                    caseVide = false;
+                    // Si la case est remplie par un pion ami
+                    if (plateau[coordS.ligne][coordS.colonne].couleur != couleur && plateau[coordS.ligne][coordS.colonne].tourPresente()) {
+                        if (hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur) {
+                            enemiDansLigneColonne[nbEnemi] = plateau[coordS.ligne][coordS.colonne];
+                            nbEnemi++;
+                        }
+                    }
+                }
+                coordS.ligne = positionSuivante(coordS, d).ligne;
+                coordS.colonne = positionSuivante(coordS, d).colonne;
+            }
+        }
+        Case[] tabFinal = new Case[nbEnemi];
+        for (int i = 0; i < nbEnemi; i++) {
+            tabFinal[i] = enemiDansLigneColonne[i];
+        }
+        return tabFinal;
     }
 
     /**
