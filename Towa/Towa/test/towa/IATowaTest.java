@@ -15,17 +15,17 @@ public class IATowaTest {
     
     @Test
     public void nbPionsNoirs(){
-        int nbPionsN = IATowa.nbPionsNoirs("AGh,32,45");
+        int nbPionsN = IAMeilleurActionTab.nbPionsNoirs("AGh,32,45");
         assertEquals(nbPionsN, 32);
-        nbPionsN = IATowa.nbPionsNoirs("AGh,3,4");
+        nbPionsN = IAMeilleurActionTab.nbPionsNoirs("AGh,3,4");
         assertEquals(nbPionsN, 3);
     }
     
     @Test
     public void nbPionsBlancs(){
-        int nbPionsB = IATowa.nbPionsBlancs("AGh,32,45");
+        int nbPionsB = IAMeilleurActionTab.nbPionsBlancs("AGh,32,45");
         assertEquals(nbPionsB, 45);
-        nbPionsB = IATowa.nbPionsBlancs("AGh,32,4");
+        nbPionsB = IAMeilleurActionTab.nbPionsBlancs("AGh,32,4");
         assertEquals(nbPionsB, 4);
     }
     
@@ -33,8 +33,8 @@ public class IATowaTest {
     public void TestMeilleurActionDansTab(){
         String[] tab = {"Agh,2,1","Agh,3,1","Agh,32,31","Agh,1,1","Agh,40,40"};
         IATowa ia = new IATowa("string", 32, Case.CAR_NOIR);
-        String meilleurAction = "Agh,3,1";
-        assertEquals(meilleurAction, ia.meilleurActionDansTab(tab));
+        String meilleurAction = "Agh";
+        assertEquals(meilleurAction, IAMeilleurActionTab.meilleurActionDansTab(tab, ia.couleur));
     }
     
 //    @Test

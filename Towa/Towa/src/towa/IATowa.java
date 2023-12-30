@@ -35,7 +35,7 @@ public class IATowa {
      * Le séparateur de chaque actions
      */
     final static String SEPARATEUR = ",";
-    
+
     final static int HAUTEUR_MAX = 4;
 
     /**
@@ -152,56 +152,9 @@ public class IATowa {
         // retournée par votre programme. À vous de faire un meilleur choix...
         //
 
-        // on instancie votre implémentation
-        JoueurTowa joueurTowa = new JoueurTowa();
-        // choisir aléatoirement une action possible
-        String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
-                joueurTowa.actionsPossibles(plateau, couleur, 8));
-        String actionJouee = null;
-        if (actionsPossibles.length > 0) {
-
-            actionJouee = meilleurActionDansTab(actionsPossibles);
-        }
+        String actionJouee = IAStrategie.principale(plateau, couleur, nbToursJeu);
 
         return actionJouee;
-    }
-
-    /**
-     * Cette fonction renvoie l'action qui a la plus grande différence de pions en fonction de la couleur
-     * @param actionsPossibles le tableau de toutes les actions possibles
-     * @return la meilleure action
-     */
-    String meilleurActionDansTab(String[] actionsPossibles) {
-        int nbPionsNoirs;
-        int nbPionsBlancs;
-        int meilleurCombot = 0;
-        for (int i = 0; i < actionsPossibles.length; i++) {
-            nbPionsNoirs = nbPionsNoirs(actionsPossibles[i]);
-            nbPionsBlancs = nbPionsBlancs(actionsPossibles[i]);
-            if (couleur == Case.CAR_NOIR) {
-                if (nbPionsNoirs - nbPionsBlancs > nbPionsNoirs(actionsPossibles[meilleurCombot]) - nbPionsBlancs(actionsPossibles[meilleurCombot])) {
-                    meilleurCombot = i;
-                }
-            }
-            else{
-                if (nbPionsBlancs - nbPionsNoirs > nbPionsBlancs(actionsPossibles[meilleurCombot]) - nbPionsNoirs(actionsPossibles[meilleurCombot])) {
-                    meilleurCombot = i;
-                }
-            }
-        }
-        return ActionsPossibles.enleverVitalites(actionsPossibles[meilleurCombot]);
-    }
-
-    static int nbPionsNoirs(String action) {
-        int indexSeparateur = action.indexOf(SEPARATEUR);
-        int indexDeuxiemeSep = action.indexOf(SEPARATEUR, indexSeparateur + 1);
-        return Integer.parseInt(action.substring(indexSeparateur+1, indexDeuxiemeSep));
-    }
-    
-    static int nbPionsBlancs(String action) {
-        int indexSeparateur = action.indexOf(SEPARATEUR);
-        int indexDeuxiemeSep = action.indexOf(SEPARATEUR, indexSeparateur + 1);
-        return Integer.parseInt(action.substring(indexDeuxiemeSep+1));
     }
 
     /**
@@ -296,17 +249,15 @@ public class IATowa {
      * @param couleurCourante couleur du joueur courant
      */
     static void activer(Coordonnees coord, Case[][] plateau, char couleurCourante) {
-        final int hauteurTourJoueur = plateau[coord.ligne][coord.colonne].hauteur;
-        List<Case> aDetruire
-                = porteeActivation(coord)
-                        .map(aPortee -> plateau[aPortee.ligne][aPortee.colonne])
-                        .filter(c -> c.tourPresente()) // une tour
-                        .filter(c -> c.couleur != couleurCourante) // ennemie
-                        .filter(c -> c.hauteur < hauteurTourJoueur) // plus basse
-                        .collect(Collectors.toList());
-        for (Case tourADetruire : aDetruire) {
+        Case[] adversaireLigneColonnes = adversaireDansLigneEtColonne(coord, couleurCourante, plateau, 8);
+        for (Case adversaire : adversaireLigneColonnes) {
+            detruireTour(adversaire);
+        }
+        Case[] adversaireAdjacent = casesAdjacentesActivation(coord, couleurCourante, plateau, 8);
+        for (Case tourADetruire : adversaireAdjacent) {
             detruireTour(tourADetruire);
         }
+        
     }
 
     /**
@@ -319,7 +270,7 @@ public class IATowa {
     static void fusionner(Coordonnees coord, Case[][] plateau, char couleurCourante) {
         Case laCase = plateau[coord.ligne][coord.colonne];
         Case[] amisLignesColonnes = amisDansLigneEtColonne(coord, couleurCourante, plateau, 8);
-        int pionsRecuperes= 0;
+        int pionsRecuperes = 0;
         for (Case tourADetruire : amisLignesColonnes) {
             pionsRecuperes += tourADetruire.hauteur;
             detruireTour(tourADetruire);
@@ -330,7 +281,7 @@ public class IATowa {
             detruireTour(tourADetruire);
         }
         int nouvelleHauteur = laCase.hauteur + pionsRecuperes;
-        if(nouvelleHauteur > HAUTEUR_MAX){
+        if (nouvelleHauteur > HAUTEUR_MAX) {
             nouvelleHauteur = HAUTEUR_MAX;
         }
         laCase.hauteur = nouvelleHauteur;
@@ -377,17 +328,87 @@ public class IATowa {
     }
 
     /**
-     * Coordonnées des cases à portée d'activation.
+     * Retourne le nombre d'adversaires (en comptant le nombre de pions sur
+     * chaque tours) à côté du joueur si la hauteur est supérieur à celle du
+     * joueur.
      *
-     * @param coord les coordonnées de la case activée
-     * @return les coordonnées des cases à portée d'activation
+     * @param coord coordonnées de la case considérée
+     * @param couleur la couleur du joueur actif
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu
+     * @return le nombre de pions adverses.
      */
-    static Stream<Coordonnees> porteeActivation(final Coordonnees coord) {
-        return Stream.concat(voisines(coord),
-                Stream.concat(memeLigne(coord), memeColonne(coord)));
+    static Case[] casesAdjacentesActivation(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        Case[] adversairesAdjacents = new Case[8];
+        int nbCases = 0;
+        for (Direction d : Direction.cardinales2()) {
+            Coordonnees pionSuivant = suivante(coord, d);
+            // Si il est dans le plateau
+            if (estDansPlateau(pionSuivant, Coordonnees.NB_LIGNES)) {
+                // Si c'est un adversaire
+                if (plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != couleur && plateau[pionSuivant.ligne][pionSuivant.colonne].couleur != Case.CAR_VIDE) {
+                    // Si la hauteur de la tour est supérieur à celle de la tour adverse
+                    if (niveau >= 6 && hauteurTour > plateau[pionSuivant.ligne][pionSuivant.colonne].hauteur) {
+                        adversairesAdjacents[nbCases] = plateau[pionSuivant.ligne][pionSuivant.colonne];
+                        nbCases++;
+                    }
+                }
+            }
+        }
+        Case[] tabFinal = new Case[nbCases];
+        for (int i = 0; i < nbCases; i++) {
+            tabFinal[i] = adversairesAdjacents[i];
+        }
+        return tabFinal;
     }
-    
-    
+
+    /**
+     * Cette fonction permet de déterminer combien de pions adverses sont sur la
+     * même ligne et la même colonne.
+     *
+     * @param coord coordonnées de la case où se trouve la tour à vérifier.
+     * @param couleur la couleur de la tour à vérifier (le joueur actif).
+     * @param plateau le plateau de jeu
+     * @param niveau le niveau du jeu.
+     * @return le nombre d'adversaires présents sur la même ligne et sur la même
+     * colonne que le joueur actif.
+     */
+    static Case[] adversaireDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
+        int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
+        Case[] adversairesDansLigneColonne = new Case[4];
+        int nbAdversaires = 0;
+        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+        boolean caseVide;
+        for (Direction d : Direction.cardinales1()) {
+            coordS.ligne = positionSuivante(coord, d).ligne;
+            coordS.colonne = positionSuivante(coord, d).colonne;
+            caseVide = true;
+            // On cherche le premier pion dans la direction d.
+            while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
+                // Si on a trouvé un pion
+                if (plateau[coordS.ligne][coordS.colonne].couleur != Case.CAR_VIDE) {
+                    caseVide = false;
+                    // Si la case est remplie par un pion adverse
+                    if (plateau[coordS.ligne][coordS.colonne].couleur != couleur) {
+                        // Et si la hauteur du pion adverse est inférieure à celle du pion activé
+                        if (hauteurTour > plateau[coordS.ligne][coordS.colonne].hauteur) {
+                            adversairesDansLigneColonne[nbAdversaires] = plateau[coordS.ligne][coordS.colonne];
+                            nbAdversaires ++;
+                        }
+                    }
+                }
+                coordS.ligne = positionSuivante(coordS, d).ligne;
+                coordS.colonne = positionSuivante(coordS, d).colonne;
+            }
+        }
+        Case[] tabFinal = new Case[nbAdversaires];
+        for (int i = 0; i < nbAdversaires; i++) {
+            tabFinal[i] = adversairesDansLigneColonne[i];
+        }
+        return tabFinal;
+    }
+
     /**
      * Cette fonction permet de déterminer combien de pions adverses sont sur la
      * même ligne et la même colonne.
@@ -416,7 +437,7 @@ public class IATowa {
                     // Si la case est remplie par un pion ami
                     if (plateau[coordS.ligne][coordS.colonne].couleur == couleur) {
                         amisDansLigneColonne[nbAmis] = plateau[coordS.ligne][coordS.colonne];
-                        nbAmis ++;
+                        nbAmis++;
                     }
                 }
                 coordS.ligne = positionSuivante(coordS, d).ligne;
@@ -429,8 +450,8 @@ public class IATowa {
         }
         return tabFinal;
     }
-    
-     /**
+
+    /**
      * Retourne le nombre d'amis adjacents (en comptant les pions qui forment
      * des tours.
      *
@@ -499,7 +520,8 @@ public class IATowa {
         // « create » du protocole du grand ordonnateur.
         final String USAGE
                 = System.lineSeparator()
-                + "\tUsage : java " + IATowa.class.getName()
+                + "\tUsage : java " + IATowa.class
+                        .getName()
                 + " <hôte> <port> <ordre>";
         if (args.length != 3) {
             System.out.println("Nombre de paramètres incorrect." + USAGE);

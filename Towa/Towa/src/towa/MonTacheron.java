@@ -37,10 +37,11 @@ class MonTacheron {
                 joueurTowa.actionsPossibles(plateau, couleur, 5));
         String actionJouee = null;
         if (actionsPossibles.length > 0) {
-            Random r = new Random();
-            int indiceAleatoire = r.nextInt(actionsPossibles.length);
-            actionJouee = ActionsPossibles.enleverVitalites(
-                    actionsPossibles[indiceAleatoire]);
+//            Random r = new Random();
+//            int indiceAleatoire = r.nextInt(actionsPossibles.length);
+//            actionJouee = ActionsPossibles.enleverVitalites(
+//                    actionsPossibles[indiceAleatoire]);
+            actionJouee = IAMeilleurActionTab.meilleurActionDansTab(actionsPossibles, couleur);
         }
         return actionJouee;
     }
