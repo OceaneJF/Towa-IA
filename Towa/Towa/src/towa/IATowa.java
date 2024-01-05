@@ -153,6 +153,8 @@ public class IATowa {
         //
 
         String actionJouee = IAStrategie.principale(plateau, couleur, nbToursJeu);
+        
+        
 
         return actionJouee;
     }
@@ -421,7 +423,7 @@ public class IATowa {
      * colonne que le joueur actif.
      */
     static Case[] amisDansLigneEtColonne(Coordonnees coord, char couleur, Case[][] plateau, int niveau) {
-        Case[] amisDansLigneColonne = new Case[40];
+        Case[] amisDansLigneColonne = new Case[4];
         int nbAmis = 0;
         Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
         boolean caseVide;

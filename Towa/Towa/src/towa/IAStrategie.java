@@ -25,37 +25,53 @@ public class IAStrategie {
      * @return
      */
     static String principale(Case[][] plateau, char couleur, int nbTourJeu) {
+        JoueurTowa joueurTowa = new JoueurTowa();
+        String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
+                joueurTowa.actionsPossibles(plateau, couleur, 8));
+        String actionTemp;
+        // Feu d'artifice final : LE CLOU DU SPECTACLE !!!
+        if (nbTourJeu > IATowa.NB_TOURS_JEU_MAX - 10) {
+            // On active pour faire le max de dégats
+            actionTemp = activerPourDegommerPlusDeN(plateau, couleur, actionsPossibles, 3);
+            if (actionTemp != null) {
+                return actionTemp;
+            }
+            // Mode pose qui peut !! : on pose 2 pions pour avoir le max de pions posés.
+            actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
+            if (actionTemp != null) {
+                return actionTemp;
+            }
+        }
         // Première règle
-        String actionTemp = activerPourDetruireTourH3(plateau, couleur);
+        actionTemp = activerPourDetruireTourH3(plateau, couleur, actionsPossibles);
         if (actionTemp != null) {
             return actionTemp;
         }
         //Deuxième règle
-        actionTemp = augmenterHauteurDe1(plateau, couleur);
+        actionTemp = augmenterHauteurDe1(plateau, couleur, actionsPossibles);
         if (actionTemp != null) {
             return actionTemp;
         }
-        // Troisième règle
-        actionTemp = activerPourDegommerPlusDe4(plateau, couleur);
-        if (actionTemp != null) {
-            return actionTemp;
-        }
+
+        // Troisième règle : remplacer par le feu d'artifice final pour plus d'efficacité
+//        actionTemp = activerPourDegommerPlusDeN(plateau, couleur, actionsPossibles,4);
+//        if (actionTemp != null) {
+//            return actionTemp;
+//        }
         // Quatrième règle
-        actionTemp = posePionSafeACoteAdversaire(plateau, couleur);
+        actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
         if (actionTemp != null) {
             return actionTemp;
         }
         // Cinquième règle
-        actionTemp = posePionSafe(plateau, couleur);
-        if(actionTemp != null){
+        actionTemp = posePionSafe(plateau, couleur, actionsPossibles);
+        if (actionTemp != null) {
             return actionTemp;
         }
         // Par défault : leilleur action dans le tableau des actions possibles
         // on instancie votre implémentation
-        JoueurTowa joueurTowa = new JoueurTowa();
+
         // choisir aléatoirement une action possible
-        String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
-                joueurTowa.actionsPossibles(plateau, couleur, 8));
         String actionJouee = null;
         if (actionsPossibles.length > 0) {
 
@@ -72,7 +88,7 @@ public class IAStrategie {
      * @param couleur
      * @return
      */
-    static String posePionSafe(Case[][] plateau, char couleur) {
+    static String posePionSafe(Case[][] plateau, char couleur, String[] actionsPossibles) {
         int i = 0;
         int j = 0;
         int coordI = 0;
@@ -80,7 +96,7 @@ public class IAStrategie {
         boolean tourTrouvee = false;
         String action = null;
         while (i < plateau.length && !tourTrouvee) {
-            j=0;
+            j = 0;
             while (j < plateau[i].length && !tourTrouvee) {
                 if (plateau[i][j].couleur == Case.CAR_VIDE) {
                     if (estSafe(plateau, couleur, new Coordonnees(i, j), 2)) {
@@ -98,6 +114,10 @@ public class IAStrategie {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
         return action;
+//        if(estUneActionPossible(action, actionsPossibles)){
+//            return action;
+//        }
+//        return null;
     }
 
     /**
@@ -107,7 +127,7 @@ public class IAStrategie {
      * @param couleur
      * @return
      */
-    static String posePionSafeACoteAdversaire(Case[][] plateau, char couleur) {
+    static String posePionSafeACoteAdversaire(Case[][] plateau, char couleur, String[] actionsPossibles) {
         int i = 0;
         int j = 0;
         int coordI = 0;
@@ -115,7 +135,7 @@ public class IAStrategie {
         boolean tourTrouvee = false;
         String action = null;
         while (i < plateau.length && !tourTrouvee) {
-            j=0;
+            j = 0;
             while (j < plateau[i].length && !tourTrouvee) {
                 if (plateau[i][j].couleur == Case.CAR_VIDE) {
                     if (poseEstBonifiee(plateau, couleur, new Coordonnees(i, j))) {
@@ -134,26 +154,30 @@ public class IAStrategie {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
         return action;
+//        if(estUneActionPossible(action, actionsPossibles)){
+//            return action;
+//        }
+//        return null;
     }
 
     static boolean poseEstBonifiee(Case[][] plateau, char couleur, Coordonnees coord) {
         for (Direction d : Direction.cardinales1()) {
             Coordonnees coordTemp = PionsAdverses.suivante(coord, d);
-            if(PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_LIGNES)){
+            if (PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_LIGNES)) {
                 if (plateau[coordTemp.ligne][coordTemp.colonne].couleur != Case.CAR_VIDE && plateau[coordTemp.ligne][coordTemp.colonne].couleur != couleur) {
                     return true;
                 }
             }
-            
+
         }
         for (Direction d : Direction.cardinales2()) {
             Coordonnees coordTemp2 = PionsAdverses.suivante(coord, d);
-            if(PionsAdverses.estDansPlateau(coordTemp2, Coordonnees.NB_LIGNES)){
+            if (PionsAdverses.estDansPlateau(coordTemp2, Coordonnees.NB_LIGNES)) {
                 if (plateau[coordTemp2.ligne][coordTemp2.colonne].couleur != Case.CAR_VIDE && plateau[coordTemp2.ligne][coordTemp2.colonne].couleur != couleur) {
                     return true;
                 }
             }
-            
+
         }
         return false;
     }
@@ -161,31 +185,32 @@ public class IAStrategie {
     static boolean estSafe(Case[][] plateau, char couleur, Coordonnees coord, int tailleMax) {
         for (Direction d : Direction.cardinales1()) {
             Coordonnees coordTemp = PionsAdverses.suivante(coord, d);
-            if(PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_LIGNES)){
+            if (PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_LIGNES)) {
                 if (plateau[coordTemp.ligne][coordTemp.colonne].couleur != Case.CAR_VIDE && plateau[coordTemp.ligne][coordTemp.colonne].couleur != couleur) {
                     if (plateau[coordTemp.ligne][coordTemp.colonne].hauteur >= tailleMax) {
                         return false;
                     }
                 }
             }
-            
+
         }
         for (Direction d : Direction.cardinales2()) {
             Coordonnees coordTemp2 = PionsAdverses.suivante(coord, d);
-            if(PionsAdverses.estDansPlateau(coordTemp2, Coordonnees.NB_LIGNES)){
+            if (PionsAdverses.estDansPlateau(coordTemp2, Coordonnees.NB_LIGNES)) {
                 if (plateau[coordTemp2.ligne][coordTemp2.colonne].couleur != Case.CAR_VIDE && plateau[coordTemp2.ligne][coordTemp2.colonne].couleur != couleur) {
                     if (plateau[coordTemp2.ligne][coordTemp2.colonne].hauteur >= tailleMax) {
                         return false;
                     }
                 }
             }
-            
+
         }
-        boolean trouve = false;
+        boolean trouve;
         for (Direction d : Direction.cardinales1()) {
+            trouve = false;
             Coordonnees coordTemp = new Coordonnees(coord.ligne, coord.colonne);
             while (PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_LIGNES) && !trouve) {
-                if (plateau[coordTemp.ligne][coordTemp.colonne].couleur == Case.CAR_VIDE) {
+                if (plateau[coordTemp.ligne][coordTemp.colonne].couleur != Case.CAR_VIDE) {
                     trouve = true;
                 } else {
                     coordTemp = PionsAdverses.suivante(coordTemp, d);
@@ -208,33 +233,34 @@ public class IAStrategie {
      * @param couleur
      * @return
      */
-    static String activerPourDegommerPlusDe4(Case[][] plateau, char couleur) {
-        int i = 0;
-        int j = 0;
+    static String activerPourDegommerPlusDeN(Case[][] plateau, char couleur, String[] actionsPossibles, int degatsMin) {
         int coordI = 0;
         int coordJ = 0;
-        boolean tourTrouvee = false;
+        int degats = 0;
+        int degatsMax = 0;
         String action = null;
-        int nbAdversaires;
-        while (i < plateau.length && !tourTrouvee) {
-            j=0;
-            while (j < plateau[i].length && !tourTrouvee) {
-                nbAdversaires = 0;
-                nbAdversaires += PionsAdverses.estDansLigneEtColonne(new Coordonnees(i, j), couleur, plateau, 8);
-                nbAdversaires += PionsAdverses.casesAdjacentesActivation(new Coordonnees(i, j), couleur, plateau, 8);
-                if (nbAdversaires >= 4) {
-                    tourTrouvee = true;
-                    coordI = i;
-                    coordJ = j;
+        for (int i = 0; i < plateau.length; i++) {
+            for (int j = 0; j < plateau[i].length; j++) {
+                if (plateau[i][j].couleur == couleur) {
+                    degats = 0;
+                    degats += PionsAdverses.estDansLigneEtColonne(new Coordonnees(i, j), couleur, plateau, 8);
+                    degats += PionsAdverses.casesAdjacentesActivation(new Coordonnees(i, j), couleur, plateau, 8);
+                    if (degats >= degatsMin && degats > degatsMax) {
+                        degatsMax = degats;
+                        coordI = i;
+                        coordJ = j;
+                    }
                 }
-                j++;
+
             }
-            i++;
         }
-        if (tourTrouvee) {
+        if (degatsMax > 0) {
             action = "A" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        return action;
+        if (estUneActionPossible(action, actionsPossibles)) {
+            return action;
+        }
+        return null;
     }
 
     /**
@@ -244,7 +270,7 @@ public class IAStrategie {
      * @param couleur
      * @return
      */
-    static String augmenterHauteurDe1(Case[][] plateau, char couleur) {
+    static String augmenterHauteurDe1(Case[][] plateau, char couleur, String[] actionsPossibles) {
         int i = 0;
         int j = 0;
         int coordI = 0;
@@ -252,7 +278,7 @@ public class IAStrategie {
         boolean tourTrouvee = false;
         String action = null;
         while (i < plateau.length && !tourTrouvee) {
-            j=0;
+            j = 0;
             while (j < plateau[i].length && !tourTrouvee) {
                 // Si je suis une tour amie qui n'est pas encore à 4 de hauteur, alors il faut la monter (pour la protéger).
                 if (plateau[i][j].couleur == couleur && plateau[i][j].hauteur < IATowa.HAUTEUR_MAX) {
@@ -267,7 +293,10 @@ public class IAStrategie {
         if (tourTrouvee) {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        return action;
+        if (estUneActionPossible(action, actionsPossibles)) {
+            return action;
+        }
+        return null;
     }
 
     /**
@@ -277,54 +306,56 @@ public class IAStrategie {
      * @param couleur
      * @return
      */
-    static String activerPourDetruireTourH3(Case[][] plateau, char couleur) {
-        int i = 0;
-        int j = 0;
-        int l;
+    static String activerPourDetruireTourH3(Case[][] plateau, char couleur, String[] actionsPossibles) {
         boolean tourAActiverTrouvee = false;
         Case[] toursAdverses;
         String action = null;
         int coordI = 0;
         int coordJ = 0;
-        while (i < plateau.length && !tourAActiverTrouvee) {
-            j=0;
-            while (j < plateau[i].length && !tourAActiverTrouvee) {
+        int degats = 0;
+        int degatsMax = 0;
+        for (int i = 0; i < plateau.length; i++) {
+            for (int j = 0; j < plateau[i].length; j++) {
+                degats = 0;
+                tourAActiverTrouvee = false;
                 // Si c'est une tour amie et qu'elle est de hauteur 4
                 // (C'est intéressant de regarder si il n'y a pas une voisine / dans lignet colonne, qui est de hauteur 3 pour pouvoir la dégommer)
                 if (plateau[i][j].couleur == couleur && plateau[i][j].hauteur == IATowa.HAUTEUR_MAX) {
                     toursAdverses = IATowa.adversaireDansLigneEtColonne(new Coordonnees(i, j), couleur, plateau, 8);
                     if (toursAdverses.length != 0) {
-                        l = 0;
-                        while (l < toursAdverses.length && toursAdverses[l] != null && !tourAActiverTrouvee) {
+                        for (int l = 0; l < toursAdverses.length; l++) {
+                            degats += toursAdverses[l].hauteur;
                             if (toursAdverses[l].hauteur == 3) {
                                 tourAActiverTrouvee = true;
-                                coordI = i;
-                                coordJ = j;
                             }
-                            l++;
                         }
                     }
                     toursAdverses = IATowa.casesAdjacentesActivation(new Coordonnees(i, j), couleur, plateau, 8);
                     if (toursAdverses.length != 0) {
-                        l = 0;
-                        while (l < toursAdverses.length && toursAdverses[l] != null && !tourAActiverTrouvee) {
+                        for (int l = 0; l < toursAdverses.length; l++) {
+                            degats += toursAdverses[l].hauteur;
                             if (toursAdverses[l].hauteur == 3) {
                                 tourAActiverTrouvee = true;
-                                coordI = i;
-                                coordJ = j;
                             }
-                            l++;
                         }
                     }
+                    if (tourAActiverTrouvee && degats > degatsMax) {
+                        degatsMax = degats;
+                        coordI = i;
+                        coordJ = j;
+                    }
                 }
-                j++;
             }
-            i++;
         }
-        if (tourAActiverTrouvee) {
+
+        if (degatsMax > 0) {
             action = "A" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        return action;
+        if (estUneActionPossible(action, actionsPossibles)) {
+            return action;
+        }
+        return null;
+
     }
 
     /**
@@ -345,6 +376,25 @@ public class IAStrategie {
     static String colonneVersLettre(int coordColonne) {
         String[] alpha = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"};
         return alpha[coordColonne];
+    }
+
+    /**
+     *
+     * @param action
+     * @param actionsPossibles
+     * @return
+     */
+    static boolean estUneActionPossible(String action, String[] actionsPossibles) {
+        boolean actionTrouvee = false;
+        if (action == null) {
+            return false;
+        }
+        for (int i = 0; i < actionsPossibles.length && !actionTrouvee; i++) {
+            if (action.equals(ActionsPossibles.enleverVitalites(actionsPossibles[i]))) {
+                actionTrouvee = true;
+            }
+        }
+        return actionTrouvee;
     }
 
 }

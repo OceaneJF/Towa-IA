@@ -31,19 +31,26 @@ class MonTacheron {
      */
     String actionChoisie(Case[][] plateau, int nbToursJeu) {
         // on instancie votre implémentation
+        
+        Oceane oceane = new Oceane(couleur);
+        
         JoueurTowa joueurTowa = new JoueurTowa();
         // choisir aléatoirement une action possible
         String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
-                joueurTowa.actionsPossibles(plateau, couleur, 5));
+                joueurTowa.actionsPossibles(plateau, couleur, 8));
         String actionJouee = null;
-        if (actionsPossibles.length > 0) {
+        //if (actionsPossibles.length > 0) {
 //            Random r = new Random();
 //            int indiceAleatoire = r.nextInt(actionsPossibles.length);
 //            actionJouee = ActionsPossibles.enleverVitalites(
 //                    actionsPossibles[indiceAleatoire]);
-            actionJouee = IAMeilleurActionTab.meilleurActionDansTab(actionsPossibles, couleur);
-        }
-        return actionJouee;
+            //actionJouee = IAMeilleurActionTab.meilleurActionDansTab(actionsPossibles, couleur);
+        //}
+        
+        actionJouee = oceane.meilleurAction(actionsPossibles, plateau);
+        
+        
+        return ActionsPossibles.enleverVitalites(actionJouee);
     }
 
     /**
