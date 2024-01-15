@@ -95,4 +95,65 @@ enum Direction {
         }
         return dv;
     }
+    
+    
+    static Coordonnees[] pionsAdjacents(Case[][] plateau, Coordonnees coord){
+        Coordonnees[] casesTrouvees = new Coordonnees[8];
+        int nbCases = 0;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if(i != 0 || j != 0){
+                    Coordonnees coordTemp = new Coordonnees(coord.ligne + i, coord.colonne + j);
+                    if(PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_COLONNES)){
+                        if(plateau[coordTemp.ligne][coordTemp.colonne].couleur != Case.CAR_VIDE){
+                            casesTrouvees[nbCases] = new Coordonnees(coordTemp.ligne, coordTemp.colonne);
+                            nbCases ++;
+                        }
+                    }
+                }
+            }
+        }
+        Coordonnees[] tabFinal = new Coordonnees[nbCases];
+        for (int i = 0; i < nbCases; i++) {
+            tabFinal[i] = casesTrouvees[i];
+        }
+        return tabFinal;
+    }
+    
+    static Coordonnees[] pionsCibles(Case[][] plateau, Coordonnees coord){
+        Coordonnees[] pionsTrouves = new Coordonnees[8];
+        int nbPions = 0;
+        for(Direction d : cardinales1()){
+            boolean trouve = false;
+            Coordonnees coordTemp = new Coordonnees(coord.ligne, coord.colonne);
+            coordTemp = PionsAdverses.suivante(coordTemp, d);
+            while(PionsAdverses.estDansPlateau(coordTemp, Coordonnees.NB_COLONNES) && !trouve){
+                if(plateau[coordTemp.ligne][coordTemp.colonne].couleur != Case.CAR_VIDE){
+                    trouve = true;
+                    pionsTrouves[nbPions] = new Coordonnees(coordTemp.ligne, coordTemp.colonne);
+                    nbPions ++;
+                }
+                coordTemp = PionsAdverses.suivante(coordTemp, d);
+            }
+        }
+        Coordonnees[] casesAdjacentes = pionsAdjacents(plateau, coord);
+        for (int i = 0; i < casesAdjacentes.length; i++) {
+            boolean trouve = false;
+            for (int j = 0; j < nbPions && !trouve; j++) {
+                if(casesAdjacentes[i].ligne == pionsTrouves[j].ligne && casesAdjacentes[i].colonne == pionsTrouves[j].colonne){
+                    trouve = true;
+                }
+            }
+            if(!trouve){
+                pionsTrouves[nbPions] = casesAdjacentes[i];
+                nbPions ++;
+            }
+        }
+        
+        Coordonnees[] tabFinal = new Coordonnees[nbPions];
+        for (int i = 0; i < nbPions; i++) {
+            tabFinal[i] = pionsTrouves[i];
+        }
+        return tabFinal;
+    }
 }

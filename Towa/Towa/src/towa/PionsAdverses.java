@@ -29,24 +29,24 @@ public class PionsAdverses {
      * @param d la direnction à suivre
      * @return les coordonnées le la case suivante en suivant la direction d.
      */
-    static Coordonnees positionSuivante(Coordonnees coord, Direction d) {
-        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
-        switch (d) {
-            case NORD:
-                coordS.ligne -= 1;
-                break;
-            case SUD:
-                coordS.ligne += 1;
-                break;
-            case EST:
-                coordS.colonne += 1;
-                break;
-            case OUEST:
-                coordS.colonne -= 1;
-                break;
-        }
-        return coordS;
-    }
+//    static Coordonnees positionSuivante(Coordonnees coord, Direction d) {
+//        Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
+//        switch (d) {
+//            case NORD:
+//                coordS.ligne -= 1;
+//                break;
+//            case SUD:
+//                coordS.ligne += 1;
+//                break;
+//            case EST:
+//                coordS.colonne += 1;
+//                break;
+//            case OUEST:
+//                coordS.colonne -= 1;
+//                break;
+//        }
+//        return coordS;
+//    }
 
     /**
      * Indique si ces coordonnées sont dans le plateau.
@@ -180,8 +180,8 @@ public class PionsAdverses {
             Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
             boolean caseVide;
             for (Direction d : Direction.cardinales1()) {
-                coordS.ligne = positionSuivante(coord, d).ligne;
-                coordS.colonne = positionSuivante(coord, d).colonne;
+                coordS.ligne = suivante(coord, d).ligne;
+                coordS.colonne = suivante(coord, d).colonne;
                 caseVide = true;
                 // On cherche le premier pion dans la direction d.
                 while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
@@ -196,8 +196,8 @@ public class PionsAdverses {
                             }
                         }
                     }
-                    coordS.ligne = positionSuivante(coordS, d).ligne;
-                    coordS.colonne = positionSuivante(coordS, d).colonne;
+                    coordS.ligne = suivante(coordS, d).ligne;
+                    coordS.colonne = suivante(coordS, d).colonne;
                 }
             }
         }
@@ -221,8 +221,8 @@ public class PionsAdverses {
         Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
         boolean caseVide;
         for (Direction d : Direction.cardinales1()) {
-            coordS.ligne = positionSuivante(coord, d).ligne;
-            coordS.colonne = positionSuivante(coord, d).colonne;
+            coordS.ligne = suivante(coord, d).ligne;
+            coordS.colonne = suivante(coord, d).colonne;
             caseVide = true;
             // On cherche le premier pion dans la direction d.
             while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
@@ -234,8 +234,8 @@ public class PionsAdverses {
                         nbAmisDansLigneColonne += plateau[coordS.ligne][coordS.colonne].hauteur;
                     }
                 }
-                coordS.ligne = positionSuivante(coordS, d).ligne;
-                coordS.colonne = positionSuivante(coordS, d).colonne;
+                coordS.ligne = suivante(coordS, d).ligne;
+                coordS.colonne = suivante(coordS, d).colonne;
             }
         }
         return nbAmisDansLigneColonne;
@@ -253,7 +253,7 @@ public class PionsAdverses {
      * @param niveau le niveau du jeu.
      * @return le nombre d'adversaires adjacents.
      */
-    /*static int casesAdjacentes(Coordonnees coord, char couleur, Case[][] plateau, int appel, int niveau) {
+    /*static int pionsAdjacents(Coordonnees coord, char couleur, Case[][] plateau, int appel, int niveau) {
         // Détermination des cases adjacentes à la tour activée.
         int hauteurTour = plateau[coord.ligne][coord.colonne].hauteur;
         int ligneMin = coord.ligne - 1;

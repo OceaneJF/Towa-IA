@@ -9,14 +9,17 @@ package towa;
  * @author cbardot
  */
 public class IAStrategie {
+
     // Ma strat :
     // 1- Si possible, détruire (en activant) une tour de hauteur 3
     // 2- Si on a une tour en cours, l'augmenter de 1
-    // 3- Si on peut détruire 4 pions ou plus (en une activation), les détruires
-    // 4- Si on peut poser un pion "safe" à côté d'un adversaire, le faire (= commencer une nouvelle tour)
-    // 5- Sinon chercher un endroit "safe" pour commencer une nouvelle tour
-
+    // 3- Si on peut détruire 4 pions ou plus (en une activation), les détruire. !! A ne pas faire !!
+    // 4- Si on peut poser un pion "safe" à côté d'un adversaire, le faire (= commencer une nouvelle tour). Faire de la pose intelligente !
+    // 5- Sinon chercher un endroit "safe" pour commencer une nouvelle tour. Faire de la pose intelligente !
+    //
     // "safe" = tous les adversaires qui peuvent s'activer contre nous sont au max de même hauteur après pose.
+    //
+    //
     /**
      *
      * @param plateau
@@ -25,50 +28,67 @@ public class IAStrategie {
      * @return
      */
     static String principale(Case[][] plateau, char couleur, int nbTourJeu) {
+        System.out.println(nbTourJeu);
         JoueurTowa joueurTowa = new JoueurTowa();
         String[] actionsPossibles = ActionsPossibles.nettoyerTableau(
                 joueurTowa.actionsPossibles(plateau, couleur, 8));
         String actionTemp;
+        // Au début, je pose au milieu
+        if (nbTourJeu == 1) {
+            return "PhH";
+        }
         // Feu d'artifice final : LE CLOU DU SPECTACLE !!!
-        if (nbTourJeu > IATowa.NB_TOURS_JEU_MAX - 10) {
+        if (nbTourJeu > IATowa.NB_TOURS_JEU_MAX - 8) {
             // On active pour faire le max de dégats
             actionTemp = activerPourDegommerPlusDeN(plateau, couleur, actionsPossibles, 3);
             if (actionTemp != null) {
                 return actionTemp;
             }
-            // Mode pose qui peut !! : on pose 2 pions pour avoir le max de pions posés.
-            actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
+            // Mode pose qui peut !!! : on pose 2 pions pour avoir le max de pions posés.
+//            actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
+//            if (actionTemp != null) {
+//                return actionTemp;
+//            }
+        } else {
+            // Première règle
+            actionTemp = activerPourDetruireTourH3(plateau, couleur, actionsPossibles);
             if (actionTemp != null) {
                 return actionTemp;
             }
-        }
-        // Première règle
-        actionTemp = activerPourDetruireTourH3(plateau, couleur, actionsPossibles);
-        if (actionTemp != null) {
-            return actionTemp;
-        }
-        //Deuxième règle
-        actionTemp = augmenterHauteurDe1(plateau, couleur, actionsPossibles);
-        if (actionTemp != null) {
-            return actionTemp;
-        }
+            //Deuxième règle
+            actionTemp = augmenterHauteurDe1(plateau, couleur, actionsPossibles);
+            if (actionTemp != null) {
+                return actionTemp;
+            }
 
-        // Troisième règle : remplacer par le feu d'artifice final pour plus d'efficacité
+            // Troisième règle : remplacer par le feu d'artifice final pour plus d'efficacité
 //        actionTemp = activerPourDegommerPlusDeN(plateau, couleur, actionsPossibles,4);
 //        if (actionTemp != null) {
 //            return actionTemp;
 //        }
+        }
+        // troisième règle
+//        actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
+        actionTemp = poseIntelligente(plateau, couleur, actionsPossibles, true);
+        if (actionTemp != null) {
+            return actionTemp;
+        }
         // Quatrième règle
+//        actionTemp = posePionSafe(plateau, couleur, actionsPossibles);
+        actionTemp = poseIntelligente(plateau, couleur, actionsPossibles, false);
+        if (actionTemp != null) {
+            return actionTemp;
+        }
+
         actionTemp = posePionSafeACoteAdversaire(plateau, couleur, actionsPossibles);
         if (actionTemp != null) {
             return actionTemp;
         }
-        // Cinquième règle
         actionTemp = posePionSafe(plateau, couleur, actionsPossibles);
         if (actionTemp != null) {
             return actionTemp;
         }
-        // Par défault : leilleur action dans le tableau des actions possibles
+        // Par défault : meilleur action dans le tableau des actions possibles
         // on instancie votre implémentation
 
         // choisir aléatoirement une action possible
@@ -113,11 +133,14 @@ public class IAStrategie {
         if (tourTrouvee) {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        return action;
-//        if(estUneActionPossible(action, actionsPossibles)){
-//            return action;
-//        }
-//        return null;
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
+        }
+
+        return null;
     }
 
     /**
@@ -140,6 +163,7 @@ public class IAStrategie {
                 if (plateau[i][j].couleur == Case.CAR_VIDE) {
                     if (poseEstBonifiee(plateau, couleur, new Coordonnees(i, j))) {
                         if (estSafe(plateau, couleur, new Coordonnees(i, j), 3)) {
+
                             tourTrouvee = true;
                             coordJ = j;
                             coordI = i;
@@ -153,11 +177,14 @@ public class IAStrategie {
         if (tourTrouvee) {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        return action;
-//        if(estUneActionPossible(action, actionsPossibles)){
-//            return action;
-//        }
-//        return null;
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
+        }
+
+        return null;
     }
 
     static boolean poseEstBonifiee(Case[][] plateau, char couleur, Coordonnees coord) {
@@ -257,9 +284,13 @@ public class IAStrategie {
         if (degatsMax > 0) {
             action = "A" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        if (estUneActionPossible(action, actionsPossibles)) {
-            return action;
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
         }
+
         return null;
     }
 
@@ -293,9 +324,13 @@ public class IAStrategie {
         if (tourTrouvee) {
             action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        if (estUneActionPossible(action, actionsPossibles)) {
-            return action;
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
         }
+
         return null;
     }
 
@@ -351,9 +386,13 @@ public class IAStrategie {
         if (degatsMax > 0) {
             action = "A" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
         }
-        if (estUneActionPossible(action, actionsPossibles)) {
-            return action;
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
         }
+
         return null;
 
     }
@@ -395,6 +434,83 @@ public class IAStrategie {
             }
         }
         return actionTrouvee;
+    }
+
+    /**
+     *
+     * @param plateau
+     * @param couleur
+     * @param coord
+     * @return le nombre de tour en emprise avec seulement une seule tour ami et
+     * pas d'autre. Donc que l'adversaire n'est pas déjà en emprise avec moi.
+     */
+    static int nbToursEnEmprise(Case[][] plateau, char couleur, Coordonnees coord) {
+        int nbToursEnEmprise = 0;
+        Coordonnees[] ciblesAVerifier = Direction.pionsCibles(plateau, coord);
+        for (int i = 0; i < ciblesAVerifier.length; i++) {
+            Coordonnees coordTemp = ciblesAVerifier[i];
+            if (plateau[coordTemp.ligne][coordTemp.colonne].couleur != couleur) {
+                Coordonnees[] ciblesDeLEnnemi = Direction.pionsCibles(plateau, coordTemp);
+                boolean coequipierTrouve = false;
+                for (int j = 0; j < ciblesDeLEnnemi.length && !coequipierTrouve; j++) {
+                    Coordonnees coordTemp2 = ciblesDeLEnnemi[j];
+                    if (plateau[coordTemp2.ligne][coordTemp2.colonne].couleur == couleur) {
+                        coequipierTrouve = true;
+                    }
+                }
+                if (!coequipierTrouve) {
+                    nbToursEnEmprise++;
+                }
+            }
+        }
+
+        return nbToursEnEmprise;
+    }
+
+    /**
+     * Quatrième règle :
+     *
+     * @param plateau
+     * @param couleur
+     * @return
+     */
+    static String poseIntelligente(Case[][] plateau, char couleur, String[] actionsPossibles, boolean poseBonifiee) {
+        int coordI = 0;
+        int coordJ = 0;
+        int nbMaxEmprise = 0;
+        String action = null;
+        for (int i = 0; i < plateau.length; i++) {
+            for (int j = 0; j < plateau[i].length; j++) {
+                if (plateau[i][j].couleur == Case.CAR_VIDE) {
+                    if (poseBonifiee && poseEstBonifiee(plateau, couleur, new Coordonnees(i, j)) || !poseBonifiee && !poseEstBonifiee(plateau, couleur, new Coordonnees(i, j))) {
+                        int tailleMax = 2;
+                        if (poseBonifiee) {
+                            tailleMax = 3;
+                        }
+                        if (estSafe(plateau, couleur, new Coordonnees(i, j), tailleMax)) {
+                            int nbEmprise = nbToursEnEmprise(plateau, couleur, new Coordonnees(i, j));
+                            if (nbEmprise > nbMaxEmprise) {
+                                coordI = i;
+                                coordJ = j;
+                                nbMaxEmprise = nbEmprise;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (nbMaxEmprise > 0) {
+            action = "P" + ligneVersLettre(coordI) + colonneVersLettre(coordJ);
+        }
+        if (action != null) {
+            if (estUneActionPossible(action, actionsPossibles)) {
+                return action;
+            }
+            return null;
+        }
+
+        return null;
     }
 
 }

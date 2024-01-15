@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static towa.PionsAdverses.estDansPlateau;
-import static towa.PionsAdverses.positionSuivante;
 import static towa.PionsAdverses.suivante;
 
 /**
@@ -383,8 +382,8 @@ public class IATowa {
         Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
         boolean caseVide;
         for (Direction d : Direction.cardinales1()) {
-            coordS.ligne = positionSuivante(coord, d).ligne;
-            coordS.colonne = positionSuivante(coord, d).colonne;
+            coordS.ligne = suivante(coord, d).ligne;
+            coordS.colonne = suivante(coord, d).colonne;
             caseVide = true;
             // On cherche le premier pion dans la direction d.
             while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
@@ -400,8 +399,8 @@ public class IATowa {
                         }
                     }
                 }
-                coordS.ligne = positionSuivante(coordS, d).ligne;
-                coordS.colonne = positionSuivante(coordS, d).colonne;
+                coordS.ligne = suivante(coordS, d).ligne;
+                coordS.colonne = suivante(coordS, d).colonne;
             }
         }
         Case[] tabFinal = new Case[nbAdversaires];
@@ -428,8 +427,8 @@ public class IATowa {
         Coordonnees coordS = new Coordonnees(coord.ligne, coord.colonne);
         boolean caseVide;
         for (Direction d : Direction.cardinales1()) {
-            coordS.ligne = positionSuivante(coord, d).ligne;
-            coordS.colonne = positionSuivante(coord, d).colonne;
+            coordS.ligne = suivante(coord, d).ligne;
+            coordS.colonne = suivante(coord, d).colonne;
             caseVide = true;
             // On cherche le premier pion dans la direction d.
             while (estDansPlateau(coordS, Coordonnees.NB_LIGNES) && caseVide) {
@@ -442,8 +441,8 @@ public class IATowa {
                         nbAmis++;
                     }
                 }
-                coordS.ligne = positionSuivante(coordS, d).ligne;
-                coordS.colonne = positionSuivante(coordS, d).colonne;
+                coordS.ligne = suivante(coordS, d).ligne;
+                coordS.colonne = suivante(coordS, d).colonne;
             }
         }
         Case[] tabFinal = new Case[nbAmis];
